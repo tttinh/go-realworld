@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +27,30 @@ func (h *ArticleHandler) ListArticles(c *gin.Context) {
 }
 
 func (h *ArticleHandler) CreateArticle(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+	body := struct {
+		Article CreateArticleReq `json:"article"`
+	}{}
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+
+	}
+
+	req := body.Article
+	res := ArticleRes{
+		Slug:           "abc",
+		Title:          req.Title,
+		Description:    req.Description,
+		Body:           req.Body,
+		Tags:           req.Tags,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		Favorited:      false,
+		FavoritesCount: 0,
+	}
+
+	c.JSON(http.StatusOK, gin.H{"article": res})
 }
 
 func (h *ArticleHandler) GetArticle(c *gin.Context) {
