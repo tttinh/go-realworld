@@ -1,16 +1,9 @@
 package entity
 
-import "time"
-
-type User struct {
-	Id        int
-	Email     string
-	Username  string
-	Bio       string
-	Image     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+import (
+	"strings"
+	"time"
+)
 
 type Article struct {
 	Id          int
@@ -18,9 +11,25 @@ type Article struct {
 	Title       string
 	Description string
 	Body        string
-	TagList     []string
+	Tags        []string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func NewArticle(title, description, body string) Article {
+	a := Article{
+		Title:       title,
+		Description: description,
+		Body:        body,
+	}
+
+	a.GenerateSlug()
+
+	return a
+}
+
+func (a *Article) GenerateSlug() {
+	a.Slug = strings.ToLower(strings.TrimSpace(a.Title))
 }
 
 type Comment struct {

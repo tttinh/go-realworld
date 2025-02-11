@@ -9,10 +9,13 @@ import (
 	"time"
 
 	"github.com/tinhtt/go-realworld/internal/api"
+	"github.com/tinhtt/go-realworld/internal/repo/mem"
 )
 
 func main() {
-	handler := api.NewHttpHandler()
+	articleRepo := mem.NewArticleRepo()
+	handler := api.NewHttpHandler(articleRepo)
+
 	srv := &http.Server{
 		Addr:           ":8080",
 		Handler:        handler,
