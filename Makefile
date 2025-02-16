@@ -23,6 +23,12 @@ stop-db:
 .PHONY: stop-db
 
 
+# Generate code from .sql files.
+gen-sqlc:
+	sqlc generate
+.PHONY: gen-sqlc
+
+
 # Create new migration files.
 # Usage: make name=update_column migrate-file
 migrate-file:
