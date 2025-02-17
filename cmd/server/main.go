@@ -9,12 +9,16 @@ import (
 	"time"
 
 	"github.com/tinhtt/go-realworld/internal/api"
-	"github.com/tinhtt/go-realworld/internal/repo/mem"
+	"github.com/tinhtt/go-realworld/internal/infra"
+	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
 func main() {
-	articleRepo := mem.NewArticleRepo()
-	handler := api.NewHttpHandler(articleRepo)
+	db := infra.ConnectDB()
+	defer infra.CloseDB(db)
+
+	articles := repo.NewPostgresArticles(db)
+	handler := api.NewHttpHandler(articles)
 
 	srv := &http.Server{
 		Addr:           ":8080",

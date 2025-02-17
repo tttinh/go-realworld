@@ -1,18 +1,24 @@
 package repo
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/tinhtt/go-realworld/internal/entity"
+	pgrepo "github.com/tinhtt/go-realworld/internal/repo/postgres"
 )
 
-type Article interface {
+type Articles interface {
 	FindBySlug(slug string) (entity.Article, error)
 	Insert(a entity.Article) (entity.Article, error)
 	Update(a entity.Article) (entity.Article, error)
 	Delete(slug string) error
 }
 
-type Comment interface {
+type Comments interface {
 	FindByArticleId(id int) ([]entity.Comment, error)
 	Insert(slug string, c entity.Comment) (entity.Comment, error)
 	Delete(id int) error
+}
+
+func NewPostgresArticles(db *pgx.Conn) Articles {
+	return pgrepo.NewArticles(db)
 }

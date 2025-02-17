@@ -23,14 +23,14 @@ stop-db:
 .PHONY: stop-db
 
 
-# Generate code from .sql files.
-gen-sqlc:
+# Generate code from .sql files into infra folder.
+gen-infra:
 	sqlc generate
-.PHONY: gen-sqlc
+.PHONY: gen-infra
 
 
 # Create new migration files.
-# Usage: make name=update_column migrate-file
+# Usage: make migrate-file name=<file-name>
 migrate-file:
 	migrate create -ext sql -seq -dir $(POSTGRES_MIGRATION) $(name)
 .PHONY: migrate-file

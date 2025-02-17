@@ -5,6 +5,6 @@ sql:
     schema: './db/postgres/migration'
     gen:
       go:
-        package: 'db'
+        package: 'pgdb'
         sql_package: 'pgx/v5'
-        out: './internal/infra/postgres/db'
+        out: './internal/infra/postgres'

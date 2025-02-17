@@ -9,8 +9,8 @@ import (
 )
 
 type CommentHandler struct {
-	articles repo.Article
-	comments repo.Comment
+	articles repo.Articles
+	comments repo.Comments
 }
 
 func (h *CommentHandler) Mount(router *gin.Engine) {

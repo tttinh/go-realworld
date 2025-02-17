@@ -9,7 +9,7 @@ import (
 )
 
 type ArticleHandler struct {
-	articles repo.Article
+	articles repo.Articles
 }
 
 func (h *ArticleHandler) Mount(router *gin.Engine) {
