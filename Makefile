@@ -30,7 +30,7 @@ gen-infra:
 
 
 # Create new migration files.
-# Usage: make migrate-file name=<file-name>
+# Example: make migrate-file name=create_table_abc
 migrate-file:
 	migrate create -ext sql -seq -dir $(POSTGRES_MIGRATION) $(name)
 .PHONY: migrate-file
