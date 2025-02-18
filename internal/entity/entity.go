@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type User struct {
+	Id       int
+	Name     string
+	Email    string
+	Password string
+	Bio      string
+	Image    string
+}
+
 type Article struct {
 	Id          int
 	Slug        string

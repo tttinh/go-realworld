@@ -18,7 +18,8 @@ func main() {
 	defer infra.CloseDB(db)
 
 	articles := repo.NewPostgresArticles(db)
-	handler := api.NewHttpHandler(articles)
+	comments := repo.NewPostgresComments(db)
+	handler := api.NewHttpHandler(articles, comments)
 
 	srv := &http.Server{
 		Addr:           ":8080",

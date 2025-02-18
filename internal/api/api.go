@@ -7,11 +7,20 @@ import (
 	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
-func NewHttpHandler(articleRepo repo.Articles) http.Handler {
+func NewHttpHandler(
+	articles repo.Articles,
+	comments repo.Comments,
+) http.Handler {
 	router := gin.Default()
 
-	ah := &ArticleHandler{articles: articleRepo}
+	ah := ArticleHandler{articles: articles}
 	ah.Mount(router)
+
+	ch := CommentHandler{articles: articles, comments: comments}
+	ch.Mount(router)
+
+	uh := UserHandler{}
+	uh.Mount(router)
 
 	return router
 }

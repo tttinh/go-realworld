@@ -14,22 +14,22 @@ type ArticleHandler struct {
 
 func (h *ArticleHandler) Mount(router *gin.Engine) {
 	router.GET("/articles/feed", h.GetFeed)
-	router.GET("/articles", h.ListArticles)
-	router.POST("/articles", h.CreateArticle)
-	router.GET("/articles/:slug", h.GetArticle)
-	router.PUT("/articles/:slug", h.UpdateArticle)
-	router.DELETE("/articles/:slug", h.DeleteArticle)
+	router.GET("/articles", h.Browse)
+	router.GET("/articles/:slug", h.Read)
+	router.PUT("/articles/:slug", h.Edit)
+	router.POST("/articles", h.Add)
+	router.DELETE("/articles/:slug", h.Delete)
 }
 
 func (h *ArticleHandler) GetFeed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *ArticleHandler) ListArticles(c *gin.Context) {
+func (h *ArticleHandler) Browse(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *ArticleHandler) CreateArticle(c *gin.Context) {
+func (h *ArticleHandler) Add(c *gin.Context) {
 	var req CreateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -53,7 +53,7 @@ func (h *ArticleHandler) CreateArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *ArticleHandler) GetArticle(c *gin.Context) {
+func (h *ArticleHandler) Read(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.FindBySlug(slug)
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *ArticleHandler) GetArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *ArticleHandler) UpdateArticle(c *gin.Context) {
+func (h *ArticleHandler) Edit(c *gin.Context) {
 	var req UpdateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -97,7 +97,7 @@ func (h *ArticleHandler) UpdateArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *ArticleHandler) DeleteArticle(c *gin.Context) {
+func (h *ArticleHandler) Delete(c *gin.Context) {
 	slug := c.Param("slug")
 	if err := h.articles.Delete(slug); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

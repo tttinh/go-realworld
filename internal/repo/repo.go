@@ -22,3 +22,7 @@ type Comments interface {
 func NewPostgresArticles(db *pgx.Conn) Articles {
 	return pgrepo.NewArticles(db)
 }
+
+func NewPostgresComments(db *pgx.Conn) Comments {
+	return pgrepo.NewComments(db)
+}
