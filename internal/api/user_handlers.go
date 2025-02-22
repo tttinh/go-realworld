@@ -16,6 +16,11 @@ func (h *UserHandler) Mount(router *gin.Engine) {
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
+	var req RegisterUserReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+	}
+
 	c.JSON(http.StatusOK, "hihi")
 }
 

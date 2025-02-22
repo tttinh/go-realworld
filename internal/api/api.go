@@ -24,3 +24,15 @@ func NewHttpHandler(
 
 	return router
 }
+
+type ErrorRes struct {
+	Errors struct {
+		Body []string `json:"body"`
+	} `json:"errors"`
+}
+
+func NewErrorRes(err error) ErrorRes {
+	var res ErrorRes
+	res.Errors.Body = []string{err.Error()}
+	return res
+}
