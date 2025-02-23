@@ -23,12 +23,12 @@ func (h *CommentHandler) Browse(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.FindBySlug(slug)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusNotFound, NewErrorRes(err.Error()))
 	}
 
 	comments, err := h.comments.FindByArticleId(a.Id)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	res := commentsFromEntity(comments)
@@ -38,7 +38,7 @@ func (h *CommentHandler) Browse(c *gin.Context) {
 func (h *CommentHandler) Add(c *gin.Context) {
 	var req CreateCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	comment := entity.Comment{
@@ -47,7 +47,7 @@ func (h *CommentHandler) Add(c *gin.Context) {
 	slug := c.Param("slug")
 	comment, err := h.comments.Insert(slug, comment)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	res := commentFromEntity(comment)

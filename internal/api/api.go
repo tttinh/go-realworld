@@ -31,8 +31,8 @@ type ErrorRes struct {
 	} `json:"errors"`
 }
 
-func NewErrorRes(err error) ErrorRes {
+func NewErrorRes(args ...string) ErrorRes {
 	var res ErrorRes
-	res.Errors.Body = []string{err.Error()}
+	res.Errors.Body = args
 	return res
 }

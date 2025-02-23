@@ -4,9 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinhtt/go-realworld/internal/entity"
+	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
-type UserHandler struct{}
+type UserHandler struct {
+	users repo.Users
+}
 
 func (h *UserHandler) Mount(router *gin.Engine) {
 	router.POST("/users/login", h.Login)
@@ -18,14 +22,34 @@ func (h *UserHandler) Mount(router *gin.Engine) {
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
-	c.JSON(http.StatusOK, "hihi")
+	u := entity.NewUser(req.User.Name, req.User.Email, req.User.Password)
+	u, err := h.users.Insert(u)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorRes(err.Error()))
+	}
+
+	c.JSON(http.StatusOK, NewUserRes(u))
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
-	c.JSON(http.StatusOK, "hihi")
+	var req LoginUserReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+	}
+
+	u, err := h.users.FindByEmail(req.User.Email)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+	}
+
+	if u.Password != req.User.Password {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes("wrong password"))
+	}
+
+	c.JSON(http.StatusOK, NewUserRes(u))
 }
 
 func (h *UserHandler) Read(c *gin.Context) {

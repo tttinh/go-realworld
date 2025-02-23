@@ -32,7 +32,7 @@ func (h *ArticleHandler) Browse(c *gin.Context) {
 func (h *ArticleHandler) Add(c *gin.Context) {
 	var req CreateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	a := entity.NewArticle(
@@ -42,7 +42,7 @@ func (h *ArticleHandler) Add(c *gin.Context) {
 	)
 	a, err := h.articles.Insert(a)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	var res ArticleRes
@@ -55,7 +55,7 @@ func (h *ArticleHandler) Read(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.FindBySlug(slug)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	var res ArticleRes
@@ -67,13 +67,13 @@ func (h *ArticleHandler) Read(c *gin.Context) {
 func (h *ArticleHandler) Edit(c *gin.Context) {
 	var req UpdateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	slug := c.Param("slug")
 	a, err := h.articles.FindBySlug(slug)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	a.Title = req.Article.Title
@@ -82,7 +82,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 
 	a, err = h.articles.Update(a)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 
 	var res ArticleRes
@@ -94,6 +94,6 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 func (h *ArticleHandler) Delete(c *gin.Context) {
 	slug := c.Param("slug")
 	if err := h.articles.Delete(slug); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
 	}
 }

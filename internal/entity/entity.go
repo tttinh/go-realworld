@@ -14,6 +14,14 @@ type User struct {
 	Image    string
 }
 
+func NewUser(name, email, password string) User {
+	return User{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+}
+
 type Article struct {
 	Id          int
 	Slug        string
