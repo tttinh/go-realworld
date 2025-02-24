@@ -8,18 +8,18 @@ import (
 	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
-type CommentHandler struct {
+type commentHandler struct {
 	articles repo.Articles
 	comments repo.Comments
 }
 
-func (h *CommentHandler) mount(router *gin.Engine) {
+func (h *commentHandler) mount(router *gin.Engine) {
 	router.GET("/articles/:slug/comments", h.browse)
 	router.POST("/articles/:slug/comments", h.add)
 	router.DELETE("/articles/:slug/comments/:id", h.delete)
 }
 
-func (h *CommentHandler) browse(c *gin.Context) {
+func (h *commentHandler) browse(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.FindBySlug(c, slug)
 	if err != nil {
@@ -36,7 +36,7 @@ func (h *CommentHandler) browse(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CommentHandler) add(c *gin.Context) {
+func (h *commentHandler) add(c *gin.Context) {
 	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
@@ -56,4 +56,4 @@ func (h *CommentHandler) add(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CommentHandler) delete(c *gin.Context) {}
+func (h *commentHandler) delete(c *gin.Context) {}

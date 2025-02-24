@@ -17,10 +17,10 @@ func NewHttpHandler(
 	ah := articleHandler{articles: articles}
 	ah.mount(router)
 
-	ch := CommentHandler{articles: articles, comments: comments}
+	ch := commentHandler{articles: articles, comments: comments}
 	ch.mount(router)
 
-	uh := UserHandler{users: users}
+	uh := userHandler{users: users}
 	uh.mount(router)
 
 	return router

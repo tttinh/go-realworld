@@ -9,18 +9,18 @@ import (
 	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
-type UserHandler struct {
+type userHandler struct {
 	users repo.Users
 }
 
-func (h *UserHandler) mount(router *gin.Engine) {
+func (h *userHandler) mount(router *gin.Engine) {
 	router.POST("/users/login", h.login)
 	router.POST("/users", h.register)
 	router.GET("/users", h.read)
 	router.PUT("/users", h.edit)
 }
 
-func (h *UserHandler) register(c *gin.Context) {
+func (h *userHandler) register(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
@@ -37,7 +37,7 @@ func (h *UserHandler) register(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *UserHandler) login(c *gin.Context) {
+func (h *userHandler) login(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
@@ -57,10 +57,40 @@ func (h *UserHandler) login(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *UserHandler) read(c *gin.Context) {
-	c.JSON(http.StatusOK, "hihi")
+func (h *userHandler) read(c *gin.Context) {
+	u, err := h.users.FindById(c, 1)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	var res userRes
+	res.fromEntity(u)
+	c.JSON(http.StatusOK, res)
 }
 
-func (h *UserHandler) edit(c *gin.Context) {
-	c.JSON(http.StatusOK, "hihi")
+func (h *userHandler) edit(c *gin.Context) {
+	var req updateUserReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	u, err := h.users.FindById(c, 1)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	u.Name = req.User.Name
+	u.Email = req.User.Email
+	u.Password = req.User.Password
+	u.Bio = req.User.Bio
+	u.Image = req.User.Image
+
+	u, err = h.users.Update(c, u)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, newErrorRes(err))
+	}
+
+	var res userRes
+	res.fromEntity(u)
+	c.JSON(http.StatusOK, res)
 }
