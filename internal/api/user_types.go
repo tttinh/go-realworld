@@ -2,7 +2,7 @@ package api
 
 import "github.com/tinhtt/go-realworld/internal/entity"
 
-type RegisterUserReq struct {
+type registerUserReq struct {
 	User struct {
 		Name     string `json:"username"`
 		Email    string `json:"email"`
@@ -10,14 +10,14 @@ type RegisterUserReq struct {
 	} `json:"user"`
 }
 
-type LoginUserReq struct {
+type loginUserReq struct {
 	User struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	} `json:"user"`
 }
 
-type UpdateUserReq struct {
+type updateUserReq struct {
 	User struct {
 		Name     string `json:"username"`
 		Email    string `json:"email"`
@@ -27,7 +27,7 @@ type UpdateUserReq struct {
 	} `json:"user"`
 }
 
-type UserRes struct {
+type userRes struct {
 	User struct {
 		Name  string `json:"username"`
 		Email string `json:"email"`
@@ -37,13 +37,10 @@ type UserRes struct {
 	} `json:"user"`
 }
 
-func NewUserRes(u entity.User) UserRes {
-	var res UserRes
+func (res *userRes) fromEntity(u entity.User) {
 	res.User.Name = u.Name
 	res.User.Email = u.Email
 	res.User.Bio = u.Bio
 	res.User.Image = u.Image
 	res.User.Token = "hihi"
-
-	return res
 }

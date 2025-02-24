@@ -2,9 +2,9 @@ create table if not exists users (
     id bigserial primary key,
     username text not null unique,
     email text not null unique,
-    pwd text not null,
+    password text not null,
     bio text,
-    img text,
+    image text,
     created_at timestamptz not null default current_timestamp,
     updated_at timestamptz not null default current_timestamp
 );

@@ -6,7 +6,7 @@ import (
 	"github.com/tinhtt/go-realworld/internal/entity"
 )
 
-type CreateArticleReq struct {
+type createArticleReq struct {
 	Article struct {
 		Title       string   `json:"title"`
 		Description string   `json:"description"`
@@ -15,7 +15,7 @@ type CreateArticleReq struct {
 	} `json:"article"`
 }
 
-type UpdateArticleReq struct {
+type updateArticleReq struct {
 	Article struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -23,7 +23,7 @@ type UpdateArticleReq struct {
 	} `json:"article"`
 }
 
-type ArticleRes struct {
+type articleRes struct {
 	Article struct {
 		Slug           string    `json:"slug"`
 		Title          string    `json:"title"`
@@ -43,7 +43,7 @@ type ArticleRes struct {
 	} `json:"article"`
 }
 
-func (res *ArticleRes) FromEntity(a entity.Article) {
+func (res *articleRes) fromEntity(a entity.Article) {
 	res.Article.Slug = a.Slug
 	res.Article.Title = a.Title
 	res.Article.Description = a.Description

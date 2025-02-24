@@ -1,29 +1,35 @@
 package repo
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/tinhtt/go-realworld/internal/entity"
 	pgrepo "github.com/tinhtt/go-realworld/internal/repo/postgres"
 )
 
 type Users interface {
-	FindById(id int) (entity.User, error)
-	FindByEmail(email string) (entity.User, error)
-	Insert(u entity.User) (entity.User, error)
-	Update(u entity.User) (entity.User, error)
+	FindById(ctx context.Context, id int) (entity.User, error)
+	FindByEmail(ctx context.Context, email string) (entity.User, error)
+	Insert(ctx context.Context, u entity.User) (entity.User, error)
+	Update(ctx context.Context, u entity.User) (entity.User, error)
 }
 
 type Articles interface {
-	FindBySlug(slug string) (entity.Article, error)
-	Insert(a entity.Article) (entity.Article, error)
-	Update(a entity.Article) (entity.Article, error)
-	Delete(slug string) error
+	FindBySlug(ctx context.Context, slug string) (entity.Article, error)
+	Insert(ctx context.Context, a entity.Article) (entity.Article, error)
+	Update(ctx context.Context, a entity.Article) (entity.Article, error)
+	Delete(ctx context.Context, slug string) error
 }
 
 type Comments interface {
-	FindByArticleId(id int) ([]entity.Comment, error)
-	Insert(slug string, c entity.Comment) (entity.Comment, error)
-	Delete(id int) error
+	FindByArticleId(ctx context.Context, id int) ([]entity.Comment, error)
+	Insert(ctx context.Context, slug string, c entity.Comment) (entity.Comment, error)
+	Delete(ctx context.Context, id int) error
+}
+
+func NewPostgresUsers(db *pgx.Conn) Users {
+	return pgrepo.NewUsers(db)
 }
 
 func NewPostgresArticles(db *pgx.Conn) Articles {

@@ -8,31 +8,34 @@ import (
 )
 
 func NewHttpHandler(
+	users repo.Users,
 	articles repo.Articles,
 	comments repo.Comments,
 ) http.Handler {
 	router := gin.Default()
 
-	ah := ArticleHandler{articles: articles}
-	ah.Mount(router)
+	ah := articleHandler{articles: articles}
+	ah.mount(router)
 
 	ch := CommentHandler{articles: articles, comments: comments}
-	ch.Mount(router)
+	ch.mount(router)
 
-	uh := UserHandler{}
-	uh.Mount(router)
+	uh := UserHandler{users: users}
+	uh.mount(router)
 
 	return router
 }
 
-type ErrorRes struct {
+type errorRes struct {
 	Errors struct {
 		Body []string `json:"body"`
 	} `json:"errors"`
 }
 
-func NewErrorRes(args ...string) ErrorRes {
-	var res ErrorRes
-	res.Errors.Body = args
+func newErrorRes(args ...error) errorRes {
+	var res errorRes
+	for _, err := range args {
+		res.Errors.Body = append(res.Errors.Body, err.Error())
+	}
 	return res
 }

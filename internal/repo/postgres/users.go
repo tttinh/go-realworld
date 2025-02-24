@@ -1,0 +1,97 @@
+package pgrepo
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/tinhtt/go-realworld/internal/entity"
+	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
+)
+
+type Users struct {
+	*pgdb.Queries
+}
+
+func NewUsers(db *pgx.Conn) *Users {
+	return &Users{
+		Queries: pgdb.New(db),
+	}
+}
+
+func (r *Users) FindById(ctx context.Context, id int) (entity.User, error) {
+	u, err := r.GetUser(ctx, int64(id))
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:       int(u.ID),
+		Name:     u.Username,
+		Email:    u.Email,
+		Password: u.Password,
+		Bio:      u.Bio.String,
+		Image:    u.Image.String,
+	}, nil
+}
+
+func (r *Users) FindByEmail(ctx context.Context, email string) (entity.User, error) {
+	u, err := r.GetUserByEmail(ctx, email)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:       int(u.ID),
+		Name:     u.Username,
+		Email:    u.Email,
+		Password: u.Password,
+		Bio:      u.Bio.String,
+		Image:    u.Image.String,
+	}, nil
+}
+
+func (r *Users) Insert(ctx context.Context, u entity.User) (entity.User, error) {
+	param := pgdb.CreateUserParams{
+		Username: u.Name,
+		Email:    u.Email,
+		Password: u.Password,
+	}
+	dbUser, err := r.CreateUser(ctx, param)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:       int(dbUser.ID),
+		Name:     dbUser.Username,
+		Email:    dbUser.Email,
+		Password: dbUser.Password,
+		Bio:      dbUser.Bio.String,
+		Image:    dbUser.Image.String,
+	}, nil
+}
+
+func (r *Users) Update(ctx context.Context, u entity.User) (entity.User, error) {
+	param := pgdb.UpdateUserParams{
+		ID:       int64(u.ID),
+		Username: pgtype.Text{String: u.Name, Valid: true},
+		Email:    pgtype.Text{String: u.Email, Valid: true},
+		Password: pgtype.Text{String: u.Password, Valid: true},
+		Bio:      pgtype.Text{String: u.Bio, Valid: true},
+		Image:    pgtype.Text{String: u.Image, Valid: true},
+	}
+	dbUser, err := r.UpdateUser(ctx, param)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:       int(dbUser.ID),
+		Name:     dbUser.Username,
+		Email:    dbUser.Email,
+		Password: dbUser.Password,
+		Bio:      dbUser.Bio.String,
+		Image:    dbUser.Image.String,
+	}, nil
+}

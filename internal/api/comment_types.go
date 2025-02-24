@@ -6,13 +6,14 @@ import (
 	"github.com/tinhtt/go-realworld/internal/entity"
 )
 
-type CreateCommentReq struct {
+type createCommentReq struct {
 	Comment struct {
 		Body string `json:"body"`
 	} `json:"comment"`
 }
-type CommentRes struct {
-	Id        int       `json:"id"`
+
+type commentRes struct {
+	ID        int       `json:"id"`
 	Body      string    `json:"body"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -24,29 +25,24 @@ type CommentRes struct {
 	} `json:"author"`
 }
 
-type ListCommentsRes struct {
-	Comments []CommentRes `json:"comments"`
+func (res *commentRes) fromEntity(c entity.Comment) {
+	res.ID = c.ID
+	res.Body = c.Body
+	res.CreatedAt = c.CreatedAt
+	res.UpdatedAt = c.UpdatedAt
 }
 
-func commentFromEntity(c entity.Comment) CommentRes {
-	return CommentRes{
-		Id:        c.Id,
-		Body:      c.Body,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-	}
+type commentsRes struct {
+	Comments []commentRes `json:"comments"`
 }
 
-func commentsFromEntity(comments []entity.Comment) ListCommentsRes {
-	var res ListCommentsRes
+func (res *commentsRes) fromEntity(comments []entity.Comment) {
 	for _, c := range comments {
-		res.Comments = append(res.Comments, CommentRes{
-			Id:        c.Id,
+		res.Comments = append(res.Comments, commentRes{
+			ID:        c.ID,
 			Body:      c.Body,
 			CreatedAt: c.CreatedAt,
 			UpdatedAt: c.UpdatedAt,
 		})
 	}
-
-	return res
 }

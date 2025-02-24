@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	Id       int
+	ID       int
 	Name     string
 	Email    string
 	Password string
@@ -23,7 +23,7 @@ func NewUser(name, email, password string) User {
 }
 
 type Article struct {
-	Id          int
+	ID          int
 	Slug        string
 	Title       string
 	Description string
@@ -50,7 +50,7 @@ func (a *Article) GenerateSlug() {
 }
 
 type Comment struct {
-	Id        int
+	ID        int
 	Body      string
 	CreatedAt time.Time
 	UpdatedAt time.Time

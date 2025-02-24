@@ -13,45 +13,47 @@ type CommentHandler struct {
 	comments repo.Comments
 }
 
-func (h *CommentHandler) Mount(router *gin.Engine) {
-	router.GET("/articles/:slug/comments", h.Browse)
-	router.POST("/articles/:slug/comments", h.Add)
-	router.DELETE("/articles/:slug/comments/:id", h.Delete)
+func (h *CommentHandler) mount(router *gin.Engine) {
+	router.GET("/articles/:slug/comments", h.browse)
+	router.POST("/articles/:slug/comments", h.add)
+	router.DELETE("/articles/:slug/comments/:id", h.delete)
 }
 
-func (h *CommentHandler) Browse(c *gin.Context) {
+func (h *CommentHandler) browse(c *gin.Context) {
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(slug)
+	a, err := h.articles.FindBySlug(c, slug)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusNotFound, newErrorRes(err))
 	}
 
-	comments, err := h.comments.FindByArticleId(a.Id)
+	comments, err := h.comments.FindByArticleId(c, a.ID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	res := commentsFromEntity(comments)
+	var res commentsRes
+	res.fromEntity(comments)
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CommentHandler) Add(c *gin.Context) {
-	var req CreateCommentReq
+func (h *CommentHandler) add(c *gin.Context) {
+	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
 	comment := entity.Comment{
 		Body: req.Comment.Body,
 	}
 	slug := c.Param("slug")
-	comment, err := h.comments.Insert(slug, comment)
+	comment, err := h.comments.Insert(c, slug, comment)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	res := commentFromEntity(comment)
+	var res commentRes
+	res.fromEntity(comment)
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *CommentHandler) Delete(c *gin.Context) {}
+func (h *CommentHandler) delete(c *gin.Context) {}

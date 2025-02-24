@@ -30,9 +30,9 @@ type User struct {
 	ID        int64
 	Username  string
 	Email     string
-	Pwd       string
+	Password  string
 	Bio       pgtype.Text
-	Img       pgtype.Text
+	Image     pgtype.Text
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
 }

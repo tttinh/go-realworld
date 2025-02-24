@@ -8,31 +8,71 @@ import (
 	"github.com/tinhtt/go-realworld/internal/repo"
 )
 
-type ArticleHandler struct {
+type articleHandler struct {
 	articles repo.Articles
 }
 
-func (h *ArticleHandler) Mount(router *gin.Engine) {
-	router.GET("/articles/feed", h.GetFeed)
-	router.GET("/articles", h.Browse)
-	router.GET("/articles/:slug", h.Read)
-	router.PUT("/articles/:slug", h.Edit)
-	router.POST("/articles", h.Add)
-	router.DELETE("/articles/:slug", h.Delete)
+func (h *articleHandler) mount(router *gin.Engine) {
+	router.GET("/articles/feed", h.browseFeed)
+	router.GET("/articles", h.browse)
+	router.GET("/articles/:slug", h.read)
+	router.PUT("/articles/:slug", h.edit)
+	router.POST("/articles", h.add)
+	router.DELETE("/articles/:slug", h.delete)
 }
 
-func (h *ArticleHandler) GetFeed(c *gin.Context) {
+func (h *articleHandler) browseFeed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *ArticleHandler) Browse(c *gin.Context) {
+func (h *articleHandler) browse(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *ArticleHandler) Add(c *gin.Context) {
-	var req CreateArticleReq
+func (h *articleHandler) read(c *gin.Context) {
+	slug := c.Param("slug")
+	a, err := h.articles.FindBySlug(c, slug)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	var res articleRes
+	res.fromEntity(a)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (h *articleHandler) edit(c *gin.Context) {
+	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	slug := c.Param("slug")
+	a, err := h.articles.FindBySlug(c, slug)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	a.Title = req.Article.Title
+	a.Description = req.Article.Description
+	a.Body = req.Article.Body
+
+	a, err = h.articles.Update(c, a)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	var res articleRes
+	res.fromEntity(a)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (h *articleHandler) add(c *gin.Context) {
+	var req createArticleReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
 	a := entity.NewArticle(
@@ -40,60 +80,20 @@ func (h *ArticleHandler) Add(c *gin.Context) {
 		req.Article.Description,
 		req.Article.Body,
 	)
-	a, err := h.articles.Insert(a)
+	a, err := h.articles.Insert(c, a)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	var res ArticleRes
-	res.FromEntity(a)
+	var res articleRes
+	res.fromEntity(a)
 
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *ArticleHandler) Read(c *gin.Context) {
+func (h *articleHandler) delete(c *gin.Context) {
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(slug)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
-	}
-
-	var res ArticleRes
-	res.FromEntity(a)
-
-	c.JSON(http.StatusOK, res)
-}
-
-func (h *ArticleHandler) Edit(c *gin.Context) {
-	var req UpdateArticleReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
-	}
-
-	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(slug)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
-	}
-
-	a.Title = req.Article.Title
-	a.Description = req.Article.Description
-	a.Body = req.Article.Body
-
-	a, err = h.articles.Update(a)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
-	}
-
-	var res ArticleRes
-	res.FromEntity(a)
-
-	c.JSON(http.StatusOK, res)
-}
-
-func (h *ArticleHandler) Delete(c *gin.Context) {
-	slug := c.Param("slug")
-	if err := h.articles.Delete(slug); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorRes(err.Error()))
+	if err := h.articles.Delete(c, slug); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 }

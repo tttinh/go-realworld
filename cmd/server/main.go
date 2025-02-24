@@ -17,9 +17,10 @@ func main() {
 	db := infra.ConnectDB()
 	defer infra.CloseDB(db)
 
+	users := repo.NewPostgresUsers(db)
 	articles := repo.NewPostgresArticles(db)
 	comments := repo.NewPostgresComments(db)
-	handler := api.NewHttpHandler(articles, comments)
+	handler := api.NewHttpHandler(users, articles, comments)
 
 	srv := &http.Server{
 		Addr:           ":8080",

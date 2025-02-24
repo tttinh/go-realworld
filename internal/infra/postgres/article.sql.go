@@ -7,6 +7,8 @@ package pgdb
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createArticle = `-- name: CreateArticle :one
@@ -45,6 +47,93 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (A
 		arg.Title,
 		arg.Description,
 		arg.Body,
+	)
+	var i Article
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Title,
+		&i.Description,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getArticle = `-- name: GetArticle :one
+SELECT id, author_id, slug, title, description, body, created_at, updated_at
+FROM articles
+WHERE id=$1
+`
+
+func (q *Queries) GetArticle(ctx context.Context, id int64) (Article, error) {
+	row := q.db.QueryRow(ctx, getArticle, id)
+	var i Article
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Title,
+		&i.Description,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getArticleBySlug = `-- name: GetArticleBySlug :one
+SELECT id, author_id, slug, title, description, body, created_at, updated_at
+FROM articles
+WHERE slug=$1
+`
+
+func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (Article, error) {
+	row := q.db.QueryRow(ctx, getArticleBySlug, slug)
+	var i Article
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Title,
+		&i.Description,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateArticle = `-- name: UpdateArticle :one
+UPDATE articles
+SET slug = coalesce($1, slug),
+    title = coalesce($2, title),
+    description = coalesce($3, description),
+    body = coalesce($4, body),
+    updated_at = now()
+WHERE id = $5 AND author_id = $6
+RETURNING id, author_id, slug, title, description, body, created_at, updated_at
+`
+
+type UpdateArticleParams struct {
+	Slug        pgtype.Text
+	Title       pgtype.Text
+	Description pgtype.Text
+	Body        pgtype.Text
+	ID          int64
+	AuthorID    int64
+}
+
+func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (Article, error) {
+	row := q.db.QueryRow(ctx, updateArticle,
+		arg.Slug,
+		arg.Title,
+		arg.Description,
+		arg.Body,
+		arg.ID,
+		arg.AuthorID,
 	)
 	var i Article
 	err := row.Scan(
