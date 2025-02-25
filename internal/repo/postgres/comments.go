@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/tinhtt/go-realworld/internal/entity"
+	"github.com/tinhtt/go-realworld/internal/domain"
 	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
 )
 
@@ -18,12 +18,12 @@ func NewComments(db *pgx.Conn) *Comments {
 	}
 }
 
-func (repo *Comments) FindByArticleId(ctx context.Context, id int) ([]entity.Comment, error) {
+func (repo *Comments) FindByArticleId(ctx context.Context, id int) ([]domain.Comment, error) {
 	return nil, nil
 }
 
-func (repo *Comments) Insert(ctx context.Context, slug string, c entity.Comment) (entity.Comment, error) {
-	return entity.Comment{}, nil
+func (repo *Comments) Insert(ctx context.Context, slug string, c domain.Comment) (domain.Comment, error) {
+	return domain.Comment{}, nil
 }
 
 func (repo *Comments) Delete(ctx context.Context, id int) error {

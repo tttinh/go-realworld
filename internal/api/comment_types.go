@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/tinhtt/go-realworld/internal/entity"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type createCommentReq struct {
@@ -25,7 +25,7 @@ type commentRes struct {
 	} `json:"author"`
 }
 
-func (res *commentRes) fromEntity(c entity.Comment) {
+func (res *commentRes) fromEntity(c domain.Comment) {
 	res.ID = c.ID
 	res.Body = c.Body
 	res.CreatedAt = c.CreatedAt
@@ -36,7 +36,7 @@ type commentsRes struct {
 	Comments []commentRes `json:"comments"`
 }
 
-func (res *commentsRes) fromEntity(comments []entity.Comment) {
+func (res *commentsRes) fromEntity(comments []domain.Comment) {
 	for _, c := range comments {
 		res.Comments = append(res.Comments, commentRes{
 			ID:        c.ID,

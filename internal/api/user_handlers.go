@@ -5,12 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tinhtt/go-realworld/internal/entity"
-	"github.com/tinhtt/go-realworld/internal/repo"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type userHandler struct {
-	users repo.Users
+	users domain.UserRepo
 }
 
 func (h *userHandler) mount(router *gin.RouterGroup) {
@@ -26,7 +25,7 @@ func (h *userHandler) register(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	u := entity.NewUser(req.User.Name, req.User.Email, req.User.Password)
+	u := domain.NewUser(req.User.Name, req.User.Email, req.User.Password)
 	u, err := h.users.Insert(c, u)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, newErrorRes(err))

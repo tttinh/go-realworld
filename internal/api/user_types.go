@@ -1,6 +1,6 @@
 package api
 
-import "github.com/tinhtt/go-realworld/internal/entity"
+import "github.com/tinhtt/go-realworld/internal/domain"
 
 type registerUserReq struct {
 	User struct {
@@ -37,7 +37,7 @@ type userRes struct {
 	} `json:"user"`
 }
 
-func (res *userRes) fromEntity(u entity.User) {
+func (res *userRes) fromEntity(u domain.User) {
 	res.User.Name = u.Name
 	res.User.Email = u.Email
 	res.User.Bio = u.Bio

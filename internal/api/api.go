@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tinhtt/go-realworld/internal/repo"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 func NewHttpHandler(
-	users repo.Users,
-	articles repo.Articles,
-	comments repo.Comments,
+	users domain.UserRepo,
+	articles domain.ArticleRepo,
+	comments domain.CommentRepo,
 ) http.Handler {
 	handler := gin.Default()
 	router := handler.Group("/api")

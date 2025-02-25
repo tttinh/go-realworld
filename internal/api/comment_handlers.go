@@ -4,13 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tinhtt/go-realworld/internal/entity"
-	"github.com/tinhtt/go-realworld/internal/repo"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type commentHandler struct {
-	articles repo.Articles
-	comments repo.Comments
+	articles domain.ArticleRepo
+	comments domain.CommentRepo
 }
 
 func (h *commentHandler) mount(router *gin.RouterGroup) {
@@ -42,7 +41,7 @@ func (h *commentHandler) add(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	comment := entity.Comment{
+	comment := domain.Comment{
 		Body: req.Comment.Body,
 	}
 	slug := c.Param("slug")

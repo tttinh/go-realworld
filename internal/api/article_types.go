@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/tinhtt/go-realworld/internal/entity"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type createArticleReq struct {
@@ -43,7 +43,7 @@ type articleRes struct {
 	} `json:"article"`
 }
 
-func (res *articleRes) fromEntity(a entity.Article) {
+func (res *articleRes) fromEntity(a domain.Article) {
 	res.Article.Slug = a.Slug
 	res.Article.Title = a.Title
 	res.Article.Description = a.Description

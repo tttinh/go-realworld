@@ -1,15 +1,15 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tinhtt/go-realworld/internal/entity"
-	"github.com/tinhtt/go-realworld/internal/repo"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type articleHandler struct {
-	articles repo.Articles
+	articles domain.ArticleRepo
 }
 
 func (h *articleHandler) mount(router *gin.RouterGroup) {
@@ -43,6 +43,7 @@ func (h *articleHandler) read(c *gin.Context) {
 }
 
 func (h *articleHandler) edit(c *gin.Context) {
+	userID := 1
 	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
@@ -52,6 +53,10 @@ func (h *articleHandler) edit(c *gin.Context) {
 	a, err := h.articles.FindBySlug(c, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	if userID != a.Author.ID {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, newErrorRes(errors.New("no permission")))
 	}
 
 	a.Title = req.Article.Title
@@ -70,12 +75,14 @@ func (h *articleHandler) edit(c *gin.Context) {
 }
 
 func (h *articleHandler) add(c *gin.Context) {
+	userID := 1
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	a := entity.NewArticle(
+	a := domain.NewArticle(
+		userID,
 		req.Article.Title,
 		req.Article.Description,
 		req.Article.Body,

@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/tinhtt/go-realworld/internal/entity"
+	"github.com/tinhtt/go-realworld/internal/domain"
 	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
 )
 
@@ -19,13 +19,13 @@ func NewUsers(db *pgx.Conn) *Users {
 	}
 }
 
-func (r *Users) FindById(ctx context.Context, id int) (entity.User, error) {
+func (r *Users) FindById(ctx context.Context, id int) (domain.User, error) {
 	u, err := r.GetUser(ctx, int64(id))
 	if err != nil {
-		return entity.User{}, err
+		return domain.User{}, err
 	}
 
-	return entity.User{
+	return domain.User{
 		ID:       int(u.ID),
 		Name:     u.Username,
 		Email:    u.Email,
@@ -35,13 +35,13 @@ func (r *Users) FindById(ctx context.Context, id int) (entity.User, error) {
 	}, nil
 }
 
-func (r *Users) FindByEmail(ctx context.Context, email string) (entity.User, error) {
+func (r *Users) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	u, err := r.GetUserByEmail(ctx, email)
 	if err != nil {
-		return entity.User{}, err
+		return domain.User{}, err
 	}
 
-	return entity.User{
+	return domain.User{
 		ID:       int(u.ID),
 		Name:     u.Username,
 		Email:    u.Email,
@@ -51,7 +51,7 @@ func (r *Users) FindByEmail(ctx context.Context, email string) (entity.User, err
 	}, nil
 }
 
-func (r *Users) Insert(ctx context.Context, u entity.User) (entity.User, error) {
+func (r *Users) Insert(ctx context.Context, u domain.User) (domain.User, error) {
 	param := pgdb.CreateUserParams{
 		Username: u.Name,
 		Email:    u.Email,
@@ -59,10 +59,10 @@ func (r *Users) Insert(ctx context.Context, u entity.User) (entity.User, error) 
 	}
 	dbUser, err := r.CreateUser(ctx, param)
 	if err != nil {
-		return entity.User{}, err
+		return domain.User{}, err
 	}
 
-	return entity.User{
+	return domain.User{
 		ID:       int(dbUser.ID),
 		Name:     dbUser.Username,
 		Email:    dbUser.Email,
@@ -72,7 +72,7 @@ func (r *Users) Insert(ctx context.Context, u entity.User) (entity.User, error) 
 	}, nil
 }
 
-func (r *Users) Update(ctx context.Context, u entity.User) (entity.User, error) {
+func (r *Users) Update(ctx context.Context, u domain.User) (domain.User, error) {
 	param := pgdb.UpdateUserParams{
 		ID:       int64(u.ID),
 		Username: pgtype.Text{String: u.Name, Valid: len(u.Name) > 0},
@@ -83,10 +83,10 @@ func (r *Users) Update(ctx context.Context, u entity.User) (entity.User, error) 
 	}
 	dbUser, err := r.UpdateUser(ctx, param)
 	if err != nil {
-		return entity.User{}, err
+		return domain.User{}, err
 	}
 
-	return entity.User{
+	return domain.User{
 		ID:       int(dbUser.ID),
 		Name:     dbUser.Username,
 		Email:    dbUser.Email,
