@@ -13,7 +13,6 @@ import (
 
 const createArticle = `-- name: CreateArticle :one
 INSERT INTO articles (
-    id,
     author_id,
     slug,
     title,
@@ -24,14 +23,12 @@ INSERT INTO articles (
     $2,
     $3,
     $4,
-    $5,
-    $6
+    $5
 )
 RETURNING id, author_id, slug, title, description, body, created_at, updated_at
 `
 
 type CreateArticleParams struct {
-	ID          int64
 	AuthorID    int64
 	Slug        string
 	Title       string
@@ -41,7 +38,6 @@ type CreateArticleParams struct {
 
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (Article, error) {
 	row := q.db.QueryRow(ctx, createArticle,
-		arg.ID,
 		arg.AuthorID,
 		arg.Slug,
 		arg.Title,

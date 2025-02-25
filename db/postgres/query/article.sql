@@ -1,6 +1,5 @@
 -- name: CreateArticle :one
 INSERT INTO articles (
-    id,
     author_id,
     slug,
     title,
@@ -11,8 +10,7 @@ INSERT INTO articles (
     $2,
     $3,
     $4,
-    $5,
-    $6
+    $5
 )
 RETURNING *;
 
