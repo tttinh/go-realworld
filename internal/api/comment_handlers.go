@@ -19,8 +19,9 @@ func (h *commentHandler) mount(router *gin.RouterGroup) {
 }
 
 func (h *commentHandler) browse(c *gin.Context) {
+	userID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(c, slug)
+	a, err := h.articles.FindBySlug(c, userID, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, newErrorRes(err))
 	}

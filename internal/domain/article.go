@@ -8,6 +8,14 @@ import (
 	"math/rand/v2"
 )
 
+type Author struct {
+	ID        int
+	Name      string
+	Bio       string
+	Image     string
+	Following bool
+}
+
 type Article struct {
 	ID             int
 	Slug           string
@@ -19,7 +27,7 @@ type Article struct {
 	UpdatedAt      time.Time
 	Favorited      bool
 	FavoritesCount int
-	Author         User
+	Author         Author
 }
 
 func NewArticle(authorID int, title, description, body string) Article {
@@ -27,7 +35,7 @@ func NewArticle(authorID int, title, description, body string) Article {
 		Title:       title,
 		Description: description,
 		Body:        body,
-		Author:      User{ID: authorID},
+		Author:      Author{ID: authorID},
 	}
 
 	a.genSlug()

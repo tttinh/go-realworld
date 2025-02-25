@@ -1,3 +1,5 @@
+begin;
+
 create table if not exists users (
     id bigserial primary key,
     username text not null unique,
@@ -27,7 +29,41 @@ create table if not exists comments (
     body text not null,
     author_id bigint not null,
     article_id bigint not null,
+    created_at timestamptz not null default current_timestamp,
+    updated_at timestamptz not null default current_timestamp,
 
     foreign key (author_id) references users(id),
     foreign key (article_id) references articles(id)
 );
+
+create table if not exists follows (
+    follower_id bigint,
+    following_id bigint,
+
+    foreign key (follower_id) references users(id),
+    foreign key (following_id) references users(id),
+
+    primary key (follower_id, following_id)
+);
+
+create table if not exists favorites (
+    user_id bigint,
+    article_id bigint,
+
+    foreign key (user_id) references users(id),
+    foreign key (article_id) references articles(id),
+
+    primary key (user_id, article_id)
+);
+
+create table if not exists tags (
+    id bigserial primary key,
+    tag text not null,
+    article_id bigint,
+
+    foreign key (article_id) references articles(id),
+
+    unique (tag, article_id)
+);
+
+commit;

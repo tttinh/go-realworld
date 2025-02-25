@@ -81,23 +81,89 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (Article, error) {
 }
 
 const getArticleBySlug = `-- name: GetArticleBySlug :one
-SELECT id, author_id, slug, title, description, body, created_at, updated_at
-FROM articles
-WHERE slug=$1
+WITH article_cte AS (
+    SELECT id, author_id, slug, title, description, body, created_at, updated_at
+    FROM articles
+    WHERE slug=$2
+),
+author_cte AS (
+    SELECT id, username, email, password, bio, image, created_at, updated_at
+    FROM users
+    WHERE id=(SELECT author_id FROM article_cte LIMIT 1)
+),
+favorites_cte AS (
+    SELECT COUNT(*) as count
+    FROM favorites
+    WHERE article_id=(SELECT id FROM article_cte LIMIT 1)
+)
+SELECT
+    a.id,
+    a.slug,
+    a.title,
+    a.description,
+    a.body,
+    a.created_at,
+    a.updated_at,
+    f.count AS favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM favorites
+        WHERE favorites.article_id = a.id
+        AND favorites.user_id = $1
+    ) THEN true ELSE false
+    END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = a.author_id
+        AND follows.follower_id = $1
+    ) THEN true ELSE false
+    END AS following,
+    author.id AS author_id,
+    author.username,
+    author.bio,
+    author.image
+FROM article_cte AS a, author_cte as author, favorites_cte as f
 `
 
-func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (Article, error) {
-	row := q.db.QueryRow(ctx, getArticleBySlug, slug)
-	var i Article
+type GetArticleBySlugParams struct {
+	ViewerID int64
+	Slug     string
+}
+
+type GetArticleBySlugRow struct {
+	ID             int64
+	Slug           string
+	Title          string
+	Description    string
+	Body           string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	FavoritesCount int64
+	Favorited      bool
+	Following      bool
+	AuthorID       int64
+	Username       string
+	Bio            pgtype.Text
+	Image          pgtype.Text
+}
+
+func (q *Queries) GetArticleBySlug(ctx context.Context, arg GetArticleBySlugParams) (GetArticleBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getArticleBySlug, arg.ViewerID, arg.Slug)
+	var i GetArticleBySlugRow
 	err := row.Scan(
 		&i.ID,
-		&i.AuthorID,
 		&i.Slug,
 		&i.Title,
 		&i.Description,
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FavoritesCount,
+		&i.Favorited,
+		&i.Following,
+		&i.AuthorID,
+		&i.Username,
+		&i.Bio,
+		&i.Image,
 	)
 	return i, err
 }

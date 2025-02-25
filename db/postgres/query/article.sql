@@ -20,9 +20,47 @@ FROM articles
 WHERE id=$1;
 
 -- name: GetArticleBySlug :one
-SELECT *
-FROM articles
-WHERE slug=$1;
+WITH article_cte AS (
+    SELECT *
+    FROM articles
+    WHERE slug=sqlc.arg('slug')
+),
+author_cte AS (
+    SELECT *
+    FROM users
+    WHERE id=(SELECT author_id FROM article_cte LIMIT 1)
+),
+favorites_cte AS (
+    SELECT COUNT(*) as count
+    FROM favorites
+    WHERE article_id=(SELECT id FROM article_cte LIMIT 1)
+)
+SELECT
+    a.id,
+    a.slug,
+    a.title,
+    a.description,
+    a.body,
+    a.created_at,
+    a.updated_at,
+    f.count AS favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM favorites
+        WHERE favorites.article_id = a.id
+        AND favorites.user_id = sqlc.arg('viewer_id')
+    ) THEN true ELSE false
+    END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = a.author_id
+        AND follows.follower_id = sqlc.arg('viewer_id')
+    ) THEN true ELSE false
+    END AS following,
+    author.id AS author_id,
+    author.username,
+    author.bio,
+    author.image
+FROM article_cte AS a, author_cte as author, favorites_cte as f;
 
 -- name: UpdateArticle :one
 UPDATE articles

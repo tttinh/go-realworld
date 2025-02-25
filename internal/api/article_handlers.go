@@ -30,8 +30,9 @@ func (h *articleHandler) browse(c *gin.Context) {
 }
 
 func (h *articleHandler) read(c *gin.Context) {
+	userID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(c, slug)
+	a, err := h.articles.FindBySlug(c, userID, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
@@ -50,7 +51,7 @@ func (h *articleHandler) edit(c *gin.Context) {
 	}
 
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(c, slug)
+	a, err := h.articles.FindBySlug(c, userID, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}

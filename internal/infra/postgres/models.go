@@ -24,6 +24,24 @@ type Comment struct {
 	Body      string
 	AuthorID  int64
 	ArticleID int64
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type Favorite struct {
+	UserID    int64
+	ArticleID int64
+}
+
+type Follow struct {
+	FollowerID  int64
+	FollowingID int64
+}
+
+type Tag struct {
+	ID        int64
+	Tag       string
+	ArticleID pgtype.Int8
 }
 
 type User struct {
