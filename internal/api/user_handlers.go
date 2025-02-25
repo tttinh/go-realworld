@@ -13,11 +13,11 @@ type userHandler struct {
 	users repo.Users
 }
 
-func (h *userHandler) mount(router *gin.Engine) {
+func (h *userHandler) mount(router *gin.RouterGroup) {
 	router.POST("/users/login", h.login)
 	router.POST("/users", h.register)
-	router.GET("/users", h.read)
-	router.PUT("/users", h.edit)
+	router.GET("/user", h.read)
+	router.PUT("/user", h.edit)
 }
 
 func (h *userHandler) register(c *gin.Context) {

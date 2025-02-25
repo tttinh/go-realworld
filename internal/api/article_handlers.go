@@ -12,7 +12,7 @@ type articleHandler struct {
 	articles repo.Articles
 }
 
-func (h *articleHandler) mount(router *gin.Engine) {
+func (h *articleHandler) mount(router *gin.RouterGroup) {
 	router.GET("/articles/feed", h.browseFeed)
 	router.GET("/articles", h.browse)
 	router.GET("/articles/:slug", h.read)

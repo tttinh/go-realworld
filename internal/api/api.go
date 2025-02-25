@@ -12,7 +12,8 @@ func NewHttpHandler(
 	articles repo.Articles,
 	comments repo.Comments,
 ) http.Handler {
-	router := gin.Default()
+	handler := gin.Default()
+	router := handler.Group("/api")
 
 	ah := articleHandler{articles: articles}
 	ah.mount(router)
@@ -23,7 +24,7 @@ func NewHttpHandler(
 	uh := userHandler{users: users}
 	uh.mount(router)
 
-	return router
+	return handler
 }
 
 type errorRes struct {

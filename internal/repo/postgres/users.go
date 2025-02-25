@@ -75,11 +75,11 @@ func (r *Users) Insert(ctx context.Context, u entity.User) (entity.User, error) 
 func (r *Users) Update(ctx context.Context, u entity.User) (entity.User, error) {
 	param := pgdb.UpdateUserParams{
 		ID:       int64(u.ID),
-		Username: pgtype.Text{String: u.Name, Valid: true},
-		Email:    pgtype.Text{String: u.Email, Valid: true},
-		Password: pgtype.Text{String: u.Password, Valid: true},
-		Bio:      pgtype.Text{String: u.Bio, Valid: true},
-		Image:    pgtype.Text{String: u.Image, Valid: true},
+		Username: pgtype.Text{String: u.Name, Valid: len(u.Name) > 0},
+		Email:    pgtype.Text{String: u.Email, Valid: len(u.Email) > 0},
+		Password: pgtype.Text{String: u.Password, Valid: len(u.Password) > 0},
+		Bio:      pgtype.Text{String: u.Bio, Valid: len(u.Bio) > 0},
+		Image:    pgtype.Text{String: u.Image, Valid: len(u.Image) > 0},
 	}
 	dbUser, err := r.UpdateUser(ctx, param)
 	if err != nil {

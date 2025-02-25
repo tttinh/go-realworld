@@ -13,7 +13,7 @@ type commentHandler struct {
 	comments repo.Comments
 }
 
-func (h *commentHandler) mount(router *gin.Engine) {
+func (h *commentHandler) mount(router *gin.RouterGroup) {
 	router.GET("/articles/:slug/comments", h.browse)
 	router.POST("/articles/:slug/comments", h.add)
 	router.DELETE("/articles/:slug/comments/:id", h.delete)
