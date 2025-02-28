@@ -14,12 +14,7 @@ INSERT INTO articles (
 )
 RETURNING *;
 
--- name: GetArticle :one
-SELECT *
-FROM articles
-WHERE id=$1;
-
--- name: GetArticleBySlug :one
+-- name: GetArticleDetail :one
 WITH article_cte AS (
     SELECT *
     FROM articles
@@ -71,3 +66,12 @@ SET slug = coalesce(sqlc.narg('slug'), slug),
     updated_at = now()
 WHERE id = sqlc.arg('id') AND author_id = sqlc.arg('author_id')
 RETURNING *;
+
+-- name: GetArticle :one
+SELECT *
+FROM articles
+WHERE slug=$1;
+
+-- name: DeleteArticle :exec
+DELETE FROM articles
+WHERE slug = $1;

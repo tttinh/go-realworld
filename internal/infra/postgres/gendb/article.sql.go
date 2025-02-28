@@ -58,14 +58,24 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (A
 	return i, err
 }
 
+const deleteArticle = `-- name: DeleteArticle :exec
+DELETE FROM articles
+WHERE slug = $1
+`
+
+func (q *Queries) DeleteArticle(ctx context.Context, slug string) error {
+	_, err := q.db.Exec(ctx, deleteArticle, slug)
+	return err
+}
+
 const getArticle = `-- name: GetArticle :one
 SELECT id, author_id, slug, title, description, body, created_at, updated_at
 FROM articles
-WHERE id=$1
+WHERE slug=$1
 `
 
-func (q *Queries) GetArticle(ctx context.Context, id int64) (Article, error) {
-	row := q.db.QueryRow(ctx, getArticle, id)
+func (q *Queries) GetArticle(ctx context.Context, slug string) (Article, error) {
+	row := q.db.QueryRow(ctx, getArticle, slug)
 	var i Article
 	err := row.Scan(
 		&i.ID,
@@ -80,7 +90,7 @@ func (q *Queries) GetArticle(ctx context.Context, id int64) (Article, error) {
 	return i, err
 }
 
-const getArticleBySlug = `-- name: GetArticleBySlug :one
+const getArticleDetail = `-- name: GetArticleDetail :one
 WITH article_cte AS (
     SELECT id, author_id, slug, title, description, body, created_at, updated_at
     FROM articles
@@ -124,12 +134,12 @@ SELECT
 FROM article_cte AS a, author_cte as author, favorites_cte as f
 `
 
-type GetArticleBySlugParams struct {
+type GetArticleDetailParams struct {
 	ViewerID int64
 	Slug     string
 }
 
-type GetArticleBySlugRow struct {
+type GetArticleDetailRow struct {
 	ID             int64
 	Slug           string
 	Title          string
@@ -146,9 +156,9 @@ type GetArticleBySlugRow struct {
 	Image          pgtype.Text
 }
 
-func (q *Queries) GetArticleBySlug(ctx context.Context, arg GetArticleBySlugParams) (GetArticleBySlugRow, error) {
-	row := q.db.QueryRow(ctx, getArticleBySlug, arg.ViewerID, arg.Slug)
-	var i GetArticleBySlugRow
+func (q *Queries) GetArticleDetail(ctx context.Context, arg GetArticleDetailParams) (GetArticleDetailRow, error) {
+	row := q.db.QueryRow(ctx, getArticleDetail, arg.ViewerID, arg.Slug)
+	var i GetArticleDetailRow
 	err := row.Scan(
 		&i.ID,
 		&i.Slug,

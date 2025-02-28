@@ -9,7 +9,7 @@ import (
 
 	"github.com/tinhtt/go-realworld/internal/infra"
 	pgrepo "github.com/tinhtt/go-realworld/internal/infra/postgres/repo"
-	httpport "github.com/tinhtt/go-realworld/internal/port/http"
+	"github.com/tinhtt/go-realworld/internal/port"
 )
 
 func main() {
@@ -19,10 +19,10 @@ func main() {
 	users := pgrepo.NewUsers(db)
 	articles := pgrepo.NewArticles(db)
 	comments := pgrepo.NewComments(db)
-	server := httpport.NewServer(users, articles, comments)
+	server := port.NewHTTPServer(users, articles, comments)
 
 	go func() {
-		if err := server.Run(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()

@@ -32,7 +32,7 @@ func (h *articleHandler) browse(c *gin.Context) {
 func (h *articleHandler) read(c *gin.Context) {
 	userID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(c, userID, slug)
+	a, err := h.articles.GetDetail(c, userID, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
@@ -51,12 +51,12 @@ func (h *articleHandler) edit(c *gin.Context) {
 	}
 
 	slug := c.Param("slug")
-	a, err := h.articles.FindBySlug(c, userID, slug)
+	a, err := h.articles.Get(c, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	if userID != a.Author.ID {
+	if userID != a.AuthorID {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, newErrorRes(errors.New("no permission")))
 	}
 
@@ -70,7 +70,7 @@ func (h *articleHandler) edit(c *gin.Context) {
 	}
 
 	var res articleRes
-	res.fromEntity(a)
+	res.fromEntity(domain.ArticleDetail{Article: a})
 
 	c.JSON(http.StatusOK, res)
 }
@@ -94,7 +94,7 @@ func (h *articleHandler) add(c *gin.Context) {
 	}
 
 	var res articleRes
-	res.fromEntity(a)
+	res.fromEntity(domain.ArticleDetail{Article: a})
 
 	c.JSON(http.StatusOK, res)
 }

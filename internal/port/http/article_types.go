@@ -43,7 +43,7 @@ type articleRes struct {
 	} `json:"article"`
 }
 
-func (res *articleRes) fromEntity(a domain.Article) {
+func (res *articleRes) fromEntity(a domain.ArticleDetail) {
 	res.Article.Slug = a.Slug
 	res.Article.Title = a.Title
 	res.Article.Description = a.Description
@@ -51,6 +51,10 @@ func (res *articleRes) fromEntity(a domain.Article) {
 	res.Article.Tags = a.Tags
 	res.Article.CreatedAt = a.CreatedAt
 	res.Article.UpdatedAt = a.UpdatedAt
-	res.Article.Favorited = false
-	res.Article.FavoritesCount = 0
+	res.Article.Favorited = a.Favorited
+	res.Article.FavoritesCount = a.FavoritesCount
+	res.Article.Author.Username = a.Author.Name
+	res.Article.Author.Bio = a.Author.Bio
+	res.Article.Author.Image = a.Author.Image
+	res.Article.Author.Following = a.Author.Following
 }

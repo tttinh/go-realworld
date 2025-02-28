@@ -19,28 +19,46 @@ func NewArticles(db *pgx.Conn) *Articles {
 	}
 }
 
-func (r *Articles) FindBySlug(ctx context.Context, viewerID int, slug string) (domain.Article, error) {
-	row, err := r.GetArticleBySlug(ctx, gendb.GetArticleBySlugParams{
-		Slug:     slug,
-		ViewerID: int64(viewerID),
-	})
+func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
+	row, err := r.GetArticle(ctx, slug)
 	if err != nil {
 		return domain.Article{}, err
 	}
 
 	return domain.Article{
 		ID:          int(row.ID),
+		AuthorID:    int(row.AuthorID),
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,
 		Body:        row.Body,
-		// Tags:    a.Image.String,
-		CreatedAt:      row.CreatedAt.Time,
-		UpdatedAt:      row.UpdatedAt.Time,
+		CreatedAt:   row.CreatedAt.Time,
+		UpdatedAt:   row.UpdatedAt.Time,
+	}, nil
+}
+
+func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (domain.ArticleDetail, error) {
+	row, err := r.GetArticleDetail(ctx, gendb.GetArticleDetailParams{
+		Slug:     slug,
+		ViewerID: int64(viewerID),
+	})
+	if err != nil {
+		return domain.ArticleDetail{}, err
+	}
+
+	return domain.ArticleDetail{
+		Article: domain.Article{
+			ID:          int(row.ID),
+			Slug:        row.Slug,
+			Title:       row.Title,
+			Description: row.Description,
+			Body:        row.Body,
+			CreatedAt:   row.CreatedAt.Time,
+			UpdatedAt:   row.UpdatedAt.Time,
+		},
 		Favorited:      row.Favorited,
 		FavoritesCount: int(row.FavoritesCount),
 		Author: domain.Author{
-			ID:        int(row.AuthorID),
 			Bio:       row.Bio.String,
 			Image:     row.Image.String,
 			Following: row.Following,
@@ -50,7 +68,7 @@ func (r *Articles) FindBySlug(ctx context.Context, viewerID int, slug string) (d
 
 func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article, error) {
 	param := gendb.CreateArticleParams{
-		AuthorID:    int64(a.Author.ID),
+		AuthorID:    int64(a.AuthorID),
 		Slug:        a.Slug,
 		Title:       a.Title,
 		Description: a.Description,
@@ -63,23 +81,20 @@ func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article
 
 	return domain.Article{
 		ID:          int(row.ID),
+		AuthorID:    int(row.AuthorID),
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,
 		Body:        row.Body,
-		// Tags:    a.Image.String,
-		CreatedAt: row.CreatedAt.Time,
-		UpdatedAt: row.UpdatedAt.Time,
-		Author: domain.Author{
-			ID: int(row.AuthorID),
-		},
+		CreatedAt:   row.CreatedAt.Time,
+		UpdatedAt:   row.UpdatedAt.Time,
 	}, nil
 }
 
 func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article, error) {
 	param := gendb.UpdateArticleParams{
 		ID:          int64(a.ID),
-		AuthorID:    int64(a.Author.ID),
+		AuthorID:    int64(a.AuthorID),
 		Slug:        pgtype.Text{String: a.Slug, Valid: len(a.Slug) > 0},
 		Title:       pgtype.Text{String: a.Title, Valid: len(a.Title) > 0},
 		Description: pgtype.Text{String: a.Description, Valid: len(a.Description) > 0},
@@ -92,19 +107,16 @@ func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article
 
 	return domain.Article{
 		ID:          int(row.ID),
+		AuthorID:    int(row.AuthorID),
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,
 		Body:        row.Body,
-		// Tags:    a.Image.String,
-		CreatedAt: row.CreatedAt.Time,
-		UpdatedAt: row.UpdatedAt.Time,
-		Author: domain.Author{
-			ID: int(row.AuthorID),
-		},
+		CreatedAt:   row.CreatedAt.Time,
+		UpdatedAt:   row.UpdatedAt.Time,
 	}, nil
 }
 
 func (r *Articles) Delete(ctx context.Context, slug string) error {
-	return nil
+	return r.DeleteArticle(ctx, slug)
 }

@@ -2,21 +2,16 @@ package httpport
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-type Server struct {
-	hs *http.Server
-}
-
-func NewServer(
+func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 	comments domain.CommentRepo,
-) Server {
+) http.Handler {
 	handler := gin.Default()
 	router := handler.Group("/api")
 
@@ -29,17 +24,5 @@ func NewServer(
 	uh := userHandler{users: users}
 	uh.mount(router)
 
-	s := &http.Server{
-		Addr:           ":8080",
-		Handler:        handler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	return Server{hs: s}
-}
-
-func (s Server) Run() error {
-	return s.hs.ListenAndServe()
+	return handler
 }
