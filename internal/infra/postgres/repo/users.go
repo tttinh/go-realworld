@@ -6,16 +6,16 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tinhtt/go-realworld/internal/domain"
-	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
+	"github.com/tinhtt/go-realworld/internal/infra/postgres/gendb"
 )
 
 type Users struct {
-	*pgdb.Queries
+	*gendb.Queries
 }
 
 func NewUsers(db *pgx.Conn) *Users {
 	return &Users{
-		Queries: pgdb.New(db),
+		Queries: gendb.New(db),
 	}
 }
 
@@ -52,7 +52,7 @@ func (r *Users) FindByEmail(ctx context.Context, email string) (domain.User, err
 }
 
 func (r *Users) Insert(ctx context.Context, u domain.User) (domain.User, error) {
-	param := pgdb.CreateUserParams{
+	param := gendb.CreateUserParams{
 		Username: u.Name,
 		Email:    u.Email,
 		Password: u.Password,
@@ -73,7 +73,7 @@ func (r *Users) Insert(ctx context.Context, u domain.User) (domain.User, error) 
 }
 
 func (r *Users) Update(ctx context.Context, u domain.User) (domain.User, error) {
-	param := pgdb.UpdateUserParams{
+	param := gendb.UpdateUserParams{
 		ID:       int64(u.ID),
 		Username: pgtype.Text{String: u.Name, Valid: len(u.Name) > 0},
 		Email:    pgtype.Text{String: u.Email, Valid: len(u.Email) > 0},

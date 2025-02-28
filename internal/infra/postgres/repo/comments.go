@@ -5,16 +5,16 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/tinhtt/go-realworld/internal/domain"
-	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
+	"github.com/tinhtt/go-realworld/internal/infra/postgres/gendb"
 )
 
 type Comments struct {
-	*pgdb.Queries
+	*gendb.Queries
 }
 
 func NewComments(db *pgx.Conn) *Comments {
 	return &Comments{
-		Queries: pgdb.New(db),
+		Queries: gendb.New(db),
 	}
 }
 

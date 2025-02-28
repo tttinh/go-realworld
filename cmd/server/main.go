@@ -6,33 +6,23 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/tinhtt/go-realworld/internal/api"
 	"github.com/tinhtt/go-realworld/internal/infra"
-	"github.com/tinhtt/go-realworld/internal/repo"
+	pgrepo "github.com/tinhtt/go-realworld/internal/infra/postgres/repo"
+	httpport "github.com/tinhtt/go-realworld/internal/port/http"
 )
 
 func main() {
 	db := infra.ConnectDB()
 	defer infra.CloseDB(db)
 
-	users := repo.NewPostgresUsers(db)
-	articles := repo.NewPostgresArticles(db)
-	comments := repo.NewPostgresComments(db)
-	handler := api.NewHttpHandler(users, articles, comments)
-
-	srv := &http.Server{
-		Addr:           ":8080",
-		Handler:        handler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
+	users := pgrepo.NewUsers(db)
+	articles := pgrepo.NewArticles(db)
+	comments := pgrepo.NewComments(db)
+	server := httpport.NewServer(users, articles, comments)
 
 	go func() {
-		// service connections
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.Run(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()

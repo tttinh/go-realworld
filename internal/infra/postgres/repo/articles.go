@@ -6,21 +6,21 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tinhtt/go-realworld/internal/domain"
-	pgdb "github.com/tinhtt/go-realworld/internal/infra/postgres"
+	"github.com/tinhtt/go-realworld/internal/infra/postgres/gendb"
 )
 
 type Articles struct {
-	*pgdb.Queries
+	*gendb.Queries
 }
 
 func NewArticles(db *pgx.Conn) *Articles {
 	return &Articles{
-		Queries: pgdb.New(db),
+		Queries: gendb.New(db),
 	}
 }
 
 func (r *Articles) FindBySlug(ctx context.Context, viewerID int, slug string) (domain.Article, error) {
-	row, err := r.GetArticleBySlug(ctx, pgdb.GetArticleBySlugParams{
+	row, err := r.GetArticleBySlug(ctx, gendb.GetArticleBySlugParams{
 		Slug:     slug,
 		ViewerID: int64(viewerID),
 	})
@@ -49,7 +49,7 @@ func (r *Articles) FindBySlug(ctx context.Context, viewerID int, slug string) (d
 }
 
 func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := pgdb.CreateArticleParams{
+	param := gendb.CreateArticleParams{
 		AuthorID:    int64(a.Author.ID),
 		Slug:        a.Slug,
 		Title:       a.Title,
@@ -77,7 +77,7 @@ func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article
 }
 
 func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := pgdb.UpdateArticleParams{
+	param := gendb.UpdateArticleParams{
 		ID:          int64(a.ID),
 		AuthorID:    int64(a.Author.ID),
 		Slug:        pgtype.Text{String: a.Slug, Valid: len(a.Slug) > 0},

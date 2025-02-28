@@ -3,7 +3,7 @@
 //   sqlc v1.28.0
 // source: user.sql
 
-package pgdb
+package gendb
 
 import (
 	"context"
