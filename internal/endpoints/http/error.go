@@ -29,7 +29,7 @@ func newErrorRes(args ...error) errorRes {
 }
 
 func ok(c *gin.Context, res any) {
-	c.JSON(http.StatusBadRequest, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func error400(c *gin.Context, err error) {
