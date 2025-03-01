@@ -1,7 +1,6 @@
 package httpport
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,9 +29,9 @@ func (h *articleHandler) browse(c *gin.Context) {
 }
 
 func (h *articleHandler) read(c *gin.Context) {
-	userID := 1
+	viewerID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.GetDetail(c, userID, slug)
+	a, err := h.articles.GetDetail(c, viewerID, slug)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
@@ -44,7 +43,7 @@ func (h *articleHandler) read(c *gin.Context) {
 }
 
 func (h *articleHandler) edit(c *gin.Context) {
-	userID := 1
+	authorID := 1
 	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
@@ -56,34 +55,37 @@ func (h *articleHandler) edit(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	if userID != a.AuthorID {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, newErrorRes(errors.New("no permission")))
+	if authorID != a.AuthorID {
+		c.AbortWithStatusJSON(http.StatusForbidden, newErrorRes(ErrAccessForbidden))
 	}
 
 	a.Title = req.Article.Title
 	a.Description = req.Article.Description
 	a.Body = req.Article.Body
-
 	a, err = h.articles.Update(c, a)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	var res articleRes
-	res.fromEntity(domain.ArticleDetail{Article: a})
+	detail, err := h.articles.GetDetail(c, authorID, slug)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
 
+	var res articleRes
+	res.fromEntity(detail)
 	c.JSON(http.StatusOK, res)
 }
 
 func (h *articleHandler) add(c *gin.Context) {
-	userID := 1
+	authorID := 1
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
 	a := domain.NewArticle(
-		userID,
+		authorID,
 		req.Article.Title,
 		req.Article.Description,
 		req.Article.Body,
@@ -93,14 +95,28 @@ func (h *articleHandler) add(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}
 
-	var res articleRes
-	res.fromEntity(domain.ArticleDetail{Article: a})
+	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
 
+	var res articleRes
+	res.fromEntity(detail)
 	c.JSON(http.StatusOK, res)
 }
 
 func (h *articleHandler) delete(c *gin.Context) {
+	authorID := 1
 	slug := c.Param("slug")
+	a, err := h.articles.Get(c, slug)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+	}
+
+	if authorID != a.AuthorID {
+		c.AbortWithStatusJSON(http.StatusForbidden, newErrorRes(ErrAccessForbidden))
+	}
+
 	if err := h.articles.Delete(c, slug); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
 	}

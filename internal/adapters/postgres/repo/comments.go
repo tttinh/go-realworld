@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
 	"github.com/tinhtt/go-realworld/internal/domain"
-	"github.com/tinhtt/go-realworld/internal/infra/postgres/gendb"
 )
 
 type Comments struct {

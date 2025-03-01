@@ -1,11 +1,11 @@
-package port
+package endpoints
 
 import (
 	"net/http"
 	"time"
 
 	"github.com/tinhtt/go-realworld/internal/domain"
-	httpport "github.com/tinhtt/go-realworld/internal/port/http"
+	httpendpoint "github.com/tinhtt/go-realworld/internal/endpoints/http"
 )
 
 func NewHTTPServer(
@@ -15,7 +15,7 @@ func NewHTTPServer(
 ) *http.Server {
 	return &http.Server{
 		Addr: ":8080",
-		Handler: httpport.NewHandler(
+		Handler: httpendpoint.NewHandler(
 			users,
 			articles,
 			comments,

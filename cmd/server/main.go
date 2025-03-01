@@ -7,19 +7,19 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tinhtt/go-realworld/internal/infra"
-	pgrepo "github.com/tinhtt/go-realworld/internal/infra/postgres/repo"
-	"github.com/tinhtt/go-realworld/internal/port"
+	"github.com/tinhtt/go-realworld/internal/adapters"
+	pgrepo "github.com/tinhtt/go-realworld/internal/adapters/postgres/repo"
+	"github.com/tinhtt/go-realworld/internal/endpoints"
 )
 
 func main() {
-	db := infra.ConnectDB()
-	defer infra.CloseDB(db)
+	db := adapters.ConnectDB()
+	defer adapters.CloseDB(db)
 
 	users := pgrepo.NewUsers(db)
 	articles := pgrepo.NewArticles(db)
 	comments := pgrepo.NewComments(db)
-	server := port.NewHTTPServer(users, articles, comments)
+	server := endpoints.NewHTTPServer(users, articles, comments)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
