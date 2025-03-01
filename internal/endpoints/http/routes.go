@@ -12,17 +12,28 @@ func NewHandler(
 	articles domain.ArticleRepo,
 	comments domain.CommentRepo,
 ) http.Handler {
-	handler := gin.Default()
-	router := handler.Group("/api")
-
-	ah := articleHandler{articles: articles}
-	ah.mount(router)
-
-	ch := commentHandler{articles: articles, comments: comments}
-	ch.mount(router)
+	h := gin.Default()
+	r := h.Group("/api")
 
 	uh := userHandler{users: users}
-	uh.mount(router)
+	ah := articleHandler{articles: articles}
+	ch := commentHandler{articles: articles, comments: comments}
 
-	return handler
+	r.POST("/users/login", uh.login)
+	r.POST("/users", uh.register)
+	r.GET("/user", uh.read)
+	r.PUT("/user", uh.edit)
+
+	r.GET("/articles/feed", ah.browseFeed)
+	r.GET("/articles", ah.browse)
+	r.POST("/articles", ah.add)
+	r.GET("/articles/:slug", ah.read)
+	r.PUT("/articles/:slug", ah.edit)
+	r.DELETE("/articles/:slug", ah.delete)
+
+	r.GET("/articles/:slug/comments", ch.browse)
+	r.POST("/articles/:slug/comments", ch.add)
+	r.DELETE("/articles/:slug/comments/:id", ch.delete)
+
+	return h
 }

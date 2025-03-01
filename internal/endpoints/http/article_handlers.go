@@ -12,15 +12,6 @@ type articleHandler struct {
 	articles domain.ArticleRepo
 }
 
-func (h *articleHandler) mount(router *gin.RouterGroup) {
-	router.GET("/articles/feed", h.browseFeed)
-	router.GET("/articles", h.browse)
-	router.GET("/articles/:slug", h.read)
-	router.PUT("/articles/:slug", h.edit)
-	router.POST("/articles", h.add)
-	router.DELETE("/articles/:slug", h.delete)
-}
-
 func (h *articleHandler) browseFeed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }

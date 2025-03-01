@@ -11,13 +11,6 @@ type userHandler struct {
 	users domain.UserRepo
 }
 
-func (h *userHandler) mount(router *gin.RouterGroup) {
-	router.POST("/users/login", h.login)
-	router.POST("/users", h.register)
-	router.GET("/user", h.read)
-	router.PUT("/user", h.edit)
-}
-
 func (h *userHandler) register(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {

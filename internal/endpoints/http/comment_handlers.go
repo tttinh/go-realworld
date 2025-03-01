@@ -12,12 +12,6 @@ type commentHandler struct {
 	comments domain.CommentRepo
 }
 
-func (h *commentHandler) mount(router *gin.RouterGroup) {
-	router.GET("/articles/:slug/comments", h.browse)
-	router.POST("/articles/:slug/comments", h.add)
-	router.DELETE("/articles/:slug/comments/:id", h.delete)
-}
-
 func (h *commentHandler) browse(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
