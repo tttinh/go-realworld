@@ -1,8 +1,7 @@
 package httpport
 
 import (
-	"errors"
-	"net/http"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
@@ -22,60 +21,68 @@ func (h *userHandler) mount(router *gin.RouterGroup) {
 func (h *userHandler) register(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
 	u := domain.NewUser(req.User.Name, req.User.Email, req.User.Password)
 	u, err := h.users.Insert(c, u)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	c.JSON(http.StatusOK, res)
+	ok(c, res)
 }
 
 func (h *userHandler) login(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
-	u, err := h.users.FindByEmail(c, req.User.Email)
+	u, err := h.users.GetByEmail(c, req.User.Email)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
 	if u.Password != req.User.Password {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(errors.New("wrong password")))
+		error400(c, ErrWrongPassword)
+		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	c.JSON(http.StatusOK, res)
+	ok(c, res)
 }
 
 func (h *userHandler) read(c *gin.Context) {
-	u, err := h.users.FindById(c, 1)
+	u, err := h.users.Get(c, 1)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	c.JSON(http.StatusOK, res)
+	ok(c, res)
 }
 
 func (h *userHandler) edit(c *gin.Context) {
 	var req updateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
-	u, err := h.users.FindById(c, 1)
+	u, err := h.users.Get(c, 1)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, newErrorRes(err))
+		error400(c, err)
+		return
 	}
 
 	u.Name = req.User.Name
@@ -86,10 +93,12 @@ func (h *userHandler) edit(c *gin.Context) {
 
 	u, err = h.users.Update(c, u)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, newErrorRes(err))
+		log.Println(err)
+		error500(c)
+		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	c.JSON(http.StatusOK, res)
+	ok(c, res)
 }

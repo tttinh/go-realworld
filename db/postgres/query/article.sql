@@ -74,4 +74,4 @@ WHERE slug=$1;
 
 -- name: DeleteArticle :exec
 DELETE FROM articles
-WHERE slug = $1;
+WHERE id = $1;

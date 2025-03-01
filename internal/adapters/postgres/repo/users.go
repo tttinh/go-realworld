@@ -19,7 +19,7 @@ func NewUsers(db *pgx.Conn) *Users {
 	}
 }
 
-func (r *Users) FindById(ctx context.Context, id int) (domain.User, error) {
+func (r *Users) Get(ctx context.Context, id int) (domain.User, error) {
 	u, err := r.GetUser(ctx, int64(id))
 	if err != nil {
 		return domain.User{}, err
@@ -35,7 +35,7 @@ func (r *Users) FindById(ctx context.Context, id int) (domain.User, error) {
 	}, nil
 }
 
-func (r *Users) FindByEmail(ctx context.Context, email string) (domain.User, error) {
+func (r *Users) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	u, err := r.GetUserByEmail(ctx, email)
 	if err != nil {
 		return domain.User{}, err

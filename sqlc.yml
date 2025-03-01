@@ -7,4 +7,4 @@ sql:
       go:
         package: 'gendb'
         sql_package: 'pgx/v5'
-        out: './internal/infra/postgres/gendb'
+        out: './internal/adapters/postgres/gendb'

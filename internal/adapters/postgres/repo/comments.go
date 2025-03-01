@@ -18,11 +18,15 @@ func NewComments(db *pgx.Conn) *Comments {
 	}
 }
 
-func (repo *Comments) FindByArticleId(ctx context.Context, id int) ([]domain.Comment, error) {
+func (repo *Comments) FindAllByArticleId(ctx context.Context, id int) ([]domain.Comment, error) {
 	return nil, nil
 }
 
-func (repo *Comments) Insert(ctx context.Context, slug string, c domain.Comment) (domain.Comment, error) {
+func (repo *Comments) Get(ctx context.Context, id int) (domain.Comment, error) {
+	return domain.Comment{}, nil
+}
+
+func (repo *Comments) Insert(ctx context.Context, c domain.Comment) (domain.Comment, error) {
 	return domain.Comment{}, nil
 }
 

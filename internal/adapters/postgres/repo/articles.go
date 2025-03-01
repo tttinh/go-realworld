@@ -19,24 +19,6 @@ func NewArticles(db *pgx.Conn) *Articles {
 	}
 }
 
-func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
-	row, err := r.GetArticle(ctx, slug)
-	if err != nil {
-		return domain.Article{}, err
-	}
-
-	return domain.Article{
-		ID:          int(row.ID),
-		AuthorID:    int(row.AuthorID),
-		Slug:        row.Slug,
-		Title:       row.Title,
-		Description: row.Description,
-		Body:        row.Body,
-		CreatedAt:   row.CreatedAt.Time,
-		UpdatedAt:   row.UpdatedAt.Time,
-	}, nil
-}
-
 func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (domain.ArticleDetail, error) {
 	row, err := r.GetArticleDetail(ctx, gendb.GetArticleDetailParams{
 		Slug:     slug,
@@ -59,10 +41,29 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 		Favorited:      row.Favorited,
 		FavoritesCount: int(row.FavoritesCount),
 		Author: domain.Author{
+			Name:      row.Username,
 			Bio:       row.Bio.String,
 			Image:     row.Image.String,
 			Following: row.Following,
 		},
+	}, nil
+}
+
+func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
+	row, err := r.GetArticle(ctx, slug)
+	if err != nil {
+		return domain.Article{}, err
+	}
+
+	return domain.Article{
+		ID:          int(row.ID),
+		AuthorID:    int(row.AuthorID),
+		Slug:        row.Slug,
+		Title:       row.Title,
+		Description: row.Description,
+		Body:        row.Body,
+		CreatedAt:   row.CreatedAt.Time,
+		UpdatedAt:   row.UpdatedAt.Time,
 	}, nil
 }
 
@@ -117,6 +118,6 @@ func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article
 	}, nil
 }
 
-func (r *Articles) Delete(ctx context.Context, slug string) error {
-	return r.DeleteArticle(ctx, slug)
+func (r *Articles) Delete(ctx context.Context, id int) error {
+	return r.DeleteArticle(ctx, int64(id))
 }
