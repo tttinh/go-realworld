@@ -18,8 +18,7 @@ func main() {
 
 	users := pgrepo.NewUsers(db)
 	articles := pgrepo.NewArticles(db)
-	comments := pgrepo.NewComments(db)
-	server := endpoints.NewHTTPServer(users, articles, comments)
+	server := endpoints.NewHTTPServer(users, articles)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

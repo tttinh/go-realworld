@@ -10,30 +10,29 @@ import (
 func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
-	comments domain.CommentRepo,
 ) http.Handler {
 	h := gin.Default()
 	r := h.Group("/api")
 
-	uh := userHandler{users: users}
-	ah := articleHandler{articles: articles}
-	ch := commentHandler{articles: articles, comments: comments}
+	u := userHandler{users: users}
+	r.POST("/users/login", u.login)
+	r.POST("/users", u.register)
+	r.GET("/user", u.read)
+	r.PUT("/user", u.edit)
 
-	r.POST("/users/login", uh.login)
-	r.POST("/users", uh.register)
-	r.GET("/user", uh.read)
-	r.PUT("/user", uh.edit)
+	a := articleHandler{articles: articles}
+	r.GET("/articles/feed", a.browseFeed)
+	r.GET("/articles", a.browse)
+	r.POST("/articles", a.add)
+	r.GET("/articles/:slug", a.read)
+	r.PUT("/articles/:slug", a.edit)
+	r.DELETE("/articles/:slug", a.delete)
+	r.POST("/articles/:slug/favorite", a.favorite)
+	r.DELETE("/articles/:slug/favorite", a.unfavorite)
 
-	r.GET("/articles/feed", ah.browseFeed)
-	r.GET("/articles", ah.browse)
-	r.POST("/articles", ah.add)
-	r.GET("/articles/:slug", ah.read)
-	r.PUT("/articles/:slug", ah.edit)
-	r.DELETE("/articles/:slug", ah.delete)
-
-	r.GET("/articles/:slug/comments", ch.browse)
-	r.POST("/articles/:slug/comments", ch.add)
-	r.DELETE("/articles/:slug/comments/:id", ch.delete)
+	r.GET("/articles/:slug/comments", a.browseComments)
+	r.POST("/articles/:slug/comments", a.addComment)
+	r.DELETE("/articles/:slug/comments/:id", a.deleteComment)
 
 	return h
 }

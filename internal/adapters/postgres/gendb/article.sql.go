@@ -11,53 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createArticle = `-- name: CreateArticle :one
-INSERT INTO articles (
-    author_id,
-    slug,
-    title,
-    description,
-    body
-) VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5
-)
-RETURNING id, author_id, slug, title, description, body, created_at, updated_at
-`
-
-type CreateArticleParams struct {
-	AuthorID    int64
-	Slug        string
-	Title       string
-	Description string
-	Body        string
-}
-
-func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (Article, error) {
-	row := q.db.QueryRow(ctx, createArticle,
-		arg.AuthorID,
-		arg.Slug,
-		arg.Title,
-		arg.Description,
-		arg.Body,
-	)
-	var i Article
-	err := row.Scan(
-		&i.ID,
-		&i.AuthorID,
-		&i.Slug,
-		&i.Title,
-		&i.Description,
-		&i.Body,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
 const deleteArticle = `-- name: DeleteArticle :exec
 DELETE FROM articles
 WHERE id = $1
@@ -68,14 +21,14 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 	return err
 }
 
-const getArticle = `-- name: GetArticle :one
+const getArticleBySlug = `-- name: GetArticleBySlug :one
 SELECT id, author_id, slug, title, description, body, created_at, updated_at
 FROM articles
 WHERE slug=$1
 `
 
-func (q *Queries) GetArticle(ctx context.Context, slug string) (Article, error) {
-	row := q.db.QueryRow(ctx, getArticle, slug)
+func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (Article, error) {
+	row := q.db.QueryRow(ctx, getArticleBySlug, slug)
 	var i Article
 	err := row.Scan(
 		&i.ID,
@@ -174,6 +127,53 @@ func (q *Queries) GetArticleDetail(ctx context.Context, arg GetArticleDetailPara
 		&i.Username,
 		&i.Bio,
 		&i.Image,
+	)
+	return i, err
+}
+
+const insertArticle = `-- name: InsertArticle :one
+INSERT INTO articles (
+    author_id,
+    slug,
+    title,
+    description,
+    body
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+)
+RETURNING id, author_id, slug, title, description, body, created_at, updated_at
+`
+
+type InsertArticleParams struct {
+	AuthorID    int64
+	Slug        string
+	Title       string
+	Description string
+	Body        string
+}
+
+func (q *Queries) InsertArticle(ctx context.Context, arg InsertArticleParams) (Article, error) {
+	row := q.db.QueryRow(ctx, insertArticle,
+		arg.AuthorID,
+		arg.Slug,
+		arg.Title,
+		arg.Description,
+		arg.Body,
+	)
+	var i Article
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Title,
+		&i.Description,
+		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

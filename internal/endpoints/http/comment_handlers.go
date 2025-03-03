@@ -7,20 +7,15 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-type commentHandler struct {
-	articles domain.ArticleRepo
-	comments domain.CommentRepo
-}
-
-func (h *commentHandler) browse(c *gin.Context) {
+func (h *articleHandler) browseComments(c *gin.Context) {
 	slug := c.Param("slug")
-	a, err := h.articles.Get(c, slug)
+	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
 		error404(c)
 		return
 	}
 
-	comments, err := h.comments.FindAllByArticleId(c, a.ID)
+	comments, err := h.articles.GetAllComments(c, a.ID)
 	if err != nil {
 		log.Println(err)
 		error500(c)
@@ -32,7 +27,7 @@ func (h *commentHandler) browse(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *commentHandler) add(c *gin.Context) {
+func (h *articleHandler) addComment(c *gin.Context) {
 	authorID := 1
 	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -41,7 +36,7 @@ func (h *commentHandler) add(c *gin.Context) {
 	}
 
 	slug := c.Param("slug")
-	a, err := h.articles.Get(c, slug)
+	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
 		error404(c)
 		return
@@ -52,7 +47,7 @@ func (h *commentHandler) add(c *gin.Context) {
 		ArticleID: a.ID,
 		Body:      req.Comment.Body,
 	}
-	comment, err = h.comments.Insert(c, comment)
+	comment, err = h.articles.AddComment(c, comment)
 	if err != nil {
 		log.Println(err)
 		error500(c)
@@ -64,4 +59,4 @@ func (h *commentHandler) add(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *commentHandler) delete(c *gin.Context) {}
+func (h *articleHandler) deleteComment(c *gin.Context) {}

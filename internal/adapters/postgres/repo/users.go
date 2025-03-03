@@ -19,8 +19,8 @@ func NewUsers(db *pgx.Conn) *Users {
 	}
 }
 
-func (r *Users) Get(ctx context.Context, id int) (domain.User, error) {
-	u, err := r.GetUser(ctx, int64(id))
+func (r *Users) GetByID(ctx context.Context, id int) (domain.User, error) {
+	u, err := r.GetUserByID(ctx, int64(id))
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -51,13 +51,13 @@ func (r *Users) GetByEmail(ctx context.Context, email string) (domain.User, erro
 	}, nil
 }
 
-func (r *Users) Insert(ctx context.Context, u domain.User) (domain.User, error) {
-	param := gendb.CreateUserParams{
+func (r *Users) Add(ctx context.Context, u domain.User) (domain.User, error) {
+	param := gendb.InsertUserParams{
 		Username: u.Name,
 		Email:    u.Email,
 		Password: u.Password,
 	}
-	dbUser, err := r.CreateUser(ctx, param)
+	dbUser, err := r.InsertUser(ctx, param)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -72,7 +72,7 @@ func (r *Users) Insert(ctx context.Context, u domain.User) (domain.User, error) 
 	}, nil
 }
 
-func (r *Users) Update(ctx context.Context, u domain.User) (domain.User, error) {
+func (r *Users) Edit(ctx context.Context, u domain.User) (domain.User, error) {
 	param := gendb.UpdateUserParams{
 		ID:       int64(u.ID),
 		Username: pgtype.Text{String: u.Name, Valid: len(u.Name) > 0},

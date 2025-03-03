@@ -1,4 +1,4 @@
--- name: CreateArticle :one
+-- name: InsertArticle :one
 INSERT INTO articles (
     author_id,
     slug,
@@ -67,7 +67,7 @@ SET slug = coalesce(sqlc.narg('slug'), slug),
 WHERE id = sqlc.arg('id') AND author_id = sqlc.arg('author_id')
 RETURNING *;
 
--- name: GetArticle :one
+-- name: GetArticleBySlug :one
 SELECT *
 FROM articles
 WHERE slug=$1;

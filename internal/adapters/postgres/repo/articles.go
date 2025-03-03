@@ -49,8 +49,8 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 	}, nil
 }
 
-func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
-	row, err := r.GetArticle(ctx, slug)
+func (r *Articles) GetBySlug(ctx context.Context, slug string) (domain.Article, error) {
+	row, err := r.GetArticleBySlug(ctx, slug)
 	if err != nil {
 		return domain.Article{}, err
 	}
@@ -67,15 +67,15 @@ func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error)
 	}, nil
 }
 
-func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := gendb.CreateArticleParams{
+func (r *Articles) Add(ctx context.Context, a domain.Article) (domain.Article, error) {
+	param := gendb.InsertArticleParams{
 		AuthorID:    int64(a.AuthorID),
 		Slug:        a.Slug,
 		Title:       a.Title,
 		Description: a.Description,
 		Body:        a.Body,
 	}
-	row, err := r.CreateArticle(ctx, param)
+	row, err := r.InsertArticle(ctx, param)
 	if err != nil {
 		return domain.Article{}, err
 	}
@@ -92,7 +92,7 @@ func (r *Articles) Insert(ctx context.Context, a domain.Article) (domain.Article
 	}, nil
 }
 
-func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article, error) {
+func (r *Articles) Edit(ctx context.Context, a domain.Article) (domain.Article, error) {
 	param := gendb.UpdateArticleParams{
 		ID:          int64(a.ID),
 		AuthorID:    int64(a.AuthorID),
@@ -118,6 +118,14 @@ func (r *Articles) Update(ctx context.Context, a domain.Article) (domain.Article
 	}, nil
 }
 
-func (r *Articles) Delete(ctx context.Context, id int) error {
+func (r *Articles) Remove(ctx context.Context, id int) error {
 	return r.DeleteArticle(ctx, int64(id))
+}
+
+func (r *Articles) AddFavorite(ctx context.Context, userID int, articleID int) error {
+	return nil
+}
+
+func (r *Articles) RemoveFavorite(ctx context.Context, userID int, articleID int) error {
+	return nil
 }

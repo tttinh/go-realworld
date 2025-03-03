@@ -19,7 +19,7 @@ func (h *userHandler) register(c *gin.Context) {
 	}
 
 	u := domain.NewUser(req.User.Name, req.User.Email, req.User.Password)
-	u, err := h.users.Insert(c, u)
+	u, err := h.users.Add(c, u)
 	if err != nil {
 		error400(c, err)
 		return
@@ -54,7 +54,7 @@ func (h *userHandler) login(c *gin.Context) {
 }
 
 func (h *userHandler) read(c *gin.Context) {
-	u, err := h.users.Get(c, 1)
+	u, err := h.users.GetByID(c, 1)
 	if err != nil {
 		error400(c, err)
 		return
@@ -72,7 +72,7 @@ func (h *userHandler) edit(c *gin.Context) {
 		return
 	}
 
-	u, err := h.users.Get(c, 1)
+	u, err := h.users.GetByID(c, 1)
 	if err != nil {
 		error400(c, err)
 		return
@@ -84,7 +84,7 @@ func (h *userHandler) edit(c *gin.Context) {
 	u.Bio = req.User.Bio
 	u.Image = req.User.Image
 
-	u, err = h.users.Update(c, u)
+	u, err = h.users.Edit(c, u)
 	if err != nil {
 		log.Println(err)
 		error500(c)

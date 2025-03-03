@@ -43,7 +43,7 @@ func (h *articleHandler) edit(c *gin.Context) {
 	}
 
 	slug := c.Param("slug")
-	a, err := h.articles.Get(c, slug)
+	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
 		error400(c, err)
 		return
@@ -61,7 +61,7 @@ func (h *articleHandler) edit(c *gin.Context) {
 		return
 	}
 
-	a, err = h.articles.Update(c, a)
+	a, err = h.articles.Edit(c, a)
 	if err != nil {
 		error400(c, err)
 		return
@@ -93,7 +93,7 @@ func (h *articleHandler) add(c *gin.Context) {
 		req.Article.Description,
 		req.Article.Body,
 	)
-	a, err := h.articles.Insert(c, a)
+	a, err := h.articles.Add(c, a)
 	if err != nil {
 		error400(c, err)
 		return
@@ -114,7 +114,7 @@ func (h *articleHandler) add(c *gin.Context) {
 func (h *articleHandler) delete(c *gin.Context) {
 	authorID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.Get(c, slug)
+	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
 		error400(c, err)
 		return
@@ -125,7 +125,39 @@ func (h *articleHandler) delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.articles.Delete(c, a.ID); err != nil {
+	if err := h.articles.Remove(c, a.ID); err != nil {
+		log.Println(err)
+		error500(c)
+		return
+	}
+}
+
+func (h *articleHandler) favorite(c *gin.Context) {
+	authorID := 1
+	slug := c.Param("slug")
+	a, err := h.articles.GetBySlug(c, slug)
+	if err != nil {
+		error400(c, err)
+		return
+	}
+
+	if err := h.articles.AddFavorite(c, authorID, a.ID); err != nil {
+		log.Println(err)
+		error500(c)
+		return
+	}
+}
+
+func (h *articleHandler) unfavorite(c *gin.Context) {
+	authorID := 1
+	slug := c.Param("slug")
+	a, err := h.articles.GetBySlug(c, slug)
+	if err != nil {
+		error400(c, err)
+		return
+	}
+
+	if err := h.articles.RemoveFavorite(c, authorID, a.ID); err != nil {
 		log.Println(err)
 		error500(c)
 		return

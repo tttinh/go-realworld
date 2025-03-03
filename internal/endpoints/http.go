@@ -11,14 +11,12 @@ import (
 func NewHTTPServer(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
-	comments domain.CommentRepo,
 ) *http.Server {
 	return &http.Server{
 		Addr: ":8080",
 		Handler: httpendpoint.NewHandler(
 			users,
 			articles,
-			comments,
 		),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
