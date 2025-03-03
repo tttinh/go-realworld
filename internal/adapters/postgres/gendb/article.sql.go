@@ -21,6 +21,21 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteFavorite = `-- name: DeleteFavorite :exec
+DELETE FROM favorites
+WHERE user_id=$1 AND article_id=$2
+`
+
+type DeleteFavoriteParams struct {
+	UserID    int64
+	ArticleID int64
+}
+
+func (q *Queries) DeleteFavorite(ctx context.Context, arg DeleteFavoriteParams) error {
+	_, err := q.db.Exec(ctx, deleteFavorite, arg.UserID, arg.ArticleID)
+	return err
+}
+
 const getArticleBySlug = `-- name: GetArticleBySlug :one
 SELECT id, author_id, slug, title, description, body, created_at, updated_at
 FROM articles
@@ -176,6 +191,26 @@ func (q *Queries) InsertArticle(ctx context.Context, arg InsertArticleParams) (A
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertFavorite = `-- name: InsertFavorite :exec
+INSERT INTO favorites (
+    user_id,
+    article_id
+) VALUES (
+    $1,
+    $2
+)
+`
+
+type InsertFavoriteParams struct {
+	UserID    int64
+	ArticleID int64
+}
+
+func (q *Queries) InsertFavorite(ctx context.Context, arg InsertFavoriteParams) error {
+	_, err := q.db.Exec(ctx, insertFavorite, arg.UserID, arg.ArticleID)
+	return err
 }
 
 const updateArticle = `-- name: UpdateArticle :one

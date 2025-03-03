@@ -75,3 +75,16 @@ WHERE slug=$1;
 -- name: DeleteArticle :exec
 DELETE FROM articles
 WHERE id = $1;
+
+-- name: InsertFavorite :exec
+INSERT INTO favorites (
+    user_id,
+    article_id
+) VALUES (
+    $1,
+    $2
+);
+
+-- name: DeleteFavorite :exec
+DELETE FROM favorites
+WHERE user_id=$1 AND article_id=$2;

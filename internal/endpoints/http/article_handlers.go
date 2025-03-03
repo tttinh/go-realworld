@@ -146,6 +146,17 @@ func (h *articleHandler) favorite(c *gin.Context) {
 		error500(c)
 		return
 	}
+
+	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
+	if err != nil {
+		log.Println(err)
+		error500(c)
+		return
+	}
+
+	var res articleRes
+	res.fromEntity(detail)
+	ok(c, res)
 }
 
 func (h *articleHandler) unfavorite(c *gin.Context) {
@@ -162,4 +173,15 @@ func (h *articleHandler) unfavorite(c *gin.Context) {
 		error500(c)
 		return
 	}
+
+	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
+	if err != nil {
+		log.Println(err)
+		error500(c)
+		return
+	}
+
+	var res articleRes
+	res.fromEntity(detail)
+	ok(c, res)
 }

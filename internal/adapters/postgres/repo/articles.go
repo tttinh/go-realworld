@@ -123,9 +123,15 @@ func (r *Articles) Remove(ctx context.Context, id int) error {
 }
 
 func (r *Articles) AddFavorite(ctx context.Context, userID int, articleID int) error {
-	return nil
+	return r.InsertFavorite(ctx, gendb.InsertFavoriteParams{
+		UserID:    int64(userID),
+		ArticleID: int64(articleID),
+	})
 }
 
 func (r *Articles) RemoveFavorite(ctx context.Context, userID int, articleID int) error {
-	return nil
+	return r.DeleteFavorite(ctx, gendb.DeleteFavoriteParams{
+		UserID:    int64(userID),
+		ArticleID: int64(articleID),
+	})
 }
