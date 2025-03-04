@@ -19,6 +19,9 @@ func NewHandler(
 	r.POST("/users", u.register)
 	r.GET("/user", u.read)
 	r.PUT("/user", u.edit)
+	r.GET("/profiles/:username", u.viewProfile)
+	r.POST("/profiles/:username/follow", u.follow)
+	r.DELETE("/profiles/:username/follow", u.unfollow)
 
 	a := articleHandler{articles: articles}
 	r.GET("/articles/feed", a.browseFeed)

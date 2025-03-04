@@ -44,3 +44,19 @@ func (res *userRes) fromEntity(u domain.User) {
 	res.User.Image = u.Image
 	res.User.Token = "hihi"
 }
+
+type profileRes struct {
+	Profile struct {
+		Name      string `json:"username"`
+		Bio       string `json:"bio"`
+		Image     string `json:"image"`
+		Following bool   `json:"following"`
+	} `json:"profile"`
+}
+
+func (res *profileRes) fromEntity(p domain.Profile) {
+	res.Profile.Name = p.Name
+	res.Profile.Bio = p.Bio
+	res.Profile.Image = p.Image
+	res.Profile.Following = p.Following
+}

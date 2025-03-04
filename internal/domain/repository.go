@@ -7,6 +7,10 @@ type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (User, error)
 	Add(ctx context.Context, u User) (User, error)
 	Edit(ctx context.Context, u User) (User, error)
+
+	GetProfile(ctx context.Context, followerID int, followingUsername string) (Profile, error)
+	Follow(ctx context.Context, followerID int, followingID int) error
+	Unfollow(ctx context.Context, followerID int, followingID int) error
 }
 
 type ArticleRepo interface {

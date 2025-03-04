@@ -35,3 +35,26 @@ SET username = coalesce(sqlc.narg('username'), username),
     updated_at = now()
 WHERE id = sqlc.arg('id')
 RETURNING *;
+
+-- name: InsertFollow :exec
+INSERT INTO follows (
+    follower_id,
+    following_id
+) VALUES (
+    $1,
+    $2
+) ON CONFLICT DO NOTHING;
+
+-- name: DeleteFollow :exec
+DELETE FROM follows
+WHERE follower_id=$1 AND following_id=$2;
+
+-- name: GetProfileByName :one
+SELECT *,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows f
+        WHERE f.follower_id = a.sqlc.arg('follower_id')
+        AND f.following_id = users.id
+    ) THEN true ELSE false END AS following
+FROM users
+WHERE username = sqlc.arg('following_name');

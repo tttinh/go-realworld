@@ -11,6 +11,66 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM follows
+WHERE follower_id=$1 AND following_id=$2
+`
+
+type DeleteFollowParams struct {
+	FollowerID  int64
+	FollowingID int64
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.FollowerID, arg.FollowingID)
+	return err
+}
+
+const getProfileByName = `-- name: GetProfileByName :one
+SELECT id, username, email, password, bio, image, created_at, updated_at,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows f
+        WHERE f.follower_id = $1
+        AND f.following_id = users.id
+    ) THEN true ELSE false END AS following
+FROM users
+WHERE username = $2
+`
+
+type GetProfileByNameParams struct {
+	FollowerID    int64
+	FollowingName string
+}
+
+type GetProfileByNameRow struct {
+	ID        int64
+	Username  string
+	Email     string
+	Password  string
+	Bio       pgtype.Text
+	Image     pgtype.Text
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	Following bool
+}
+
+func (q *Queries) GetProfileByName(ctx context.Context, arg GetProfileByNameParams) (GetProfileByNameRow, error) {
+	row := q.db.QueryRow(ctx, getProfileByName, arg.FollowerID, arg.FollowingName)
+	var i GetProfileByNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.Bio,
+		&i.Image,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Following,
+	)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, username, email, password, bio, image, created_at, updated_at
 FROM users
@@ -75,6 +135,26 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertFollow = `-- name: InsertFollow :exec
+INSERT INTO follows (
+    follower_id,
+    following_id
+) VALUES (
+    $1,
+    $2
+) ON CONFLICT DO NOTHING
+`
+
+type InsertFollowParams struct {
+	FollowerID  int64
+	FollowingID int64
+}
+
+func (q *Queries) InsertFollow(ctx context.Context, arg InsertFollowParams) error {
+	_, err := q.db.Exec(ctx, insertFollow, arg.FollowerID, arg.FollowingID)
+	return err
 }
 
 const insertUser = `-- name: InsertUser :one

@@ -95,3 +95,35 @@ func (r *Users) Edit(ctx context.Context, u domain.User) (domain.User, error) {
 		Image:    dbUser.Image.String,
 	}, nil
 }
+
+func (r *Users) GetProfile(ctx context.Context, followerID int, followingUsername string) (domain.Profile, error) {
+	p, err := r.GetProfileByName(ctx, gendb.GetProfileByNameParams{
+		FollowerID:    int64(followerID),
+		FollowingName: followingUsername,
+	})
+	if err != nil {
+		return domain.Profile{}, err
+	}
+
+	return domain.Profile{
+		ID:        int(p.ID),
+		Name:      p.Username,
+		Bio:       p.Bio.String,
+		Image:     p.Image.String,
+		Following: p.Following,
+	}, nil
+}
+
+func (r *Users) Follow(ctx context.Context, followerID int, followingID int) error {
+	return r.InsertFollow(ctx, gendb.InsertFollowParams{
+		FollowerID:  int64(followerID),
+		FollowingID: int64(followingID),
+	})
+}
+
+func (r *Users) Unfollow(ctx context.Context, followerID int, followingID int) error {
+	return r.DeleteFollow(ctx, gendb.DeleteFollowParams{
+		FollowerID:  int64(followerID),
+		FollowingID: int64(followingID),
+	})
+}
