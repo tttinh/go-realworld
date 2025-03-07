@@ -1,7 +1,8 @@
-package httpport
+package httpendpoints
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
@@ -11,30 +12,47 @@ func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
+	const tokenSecret = "ABC"
+	const tokenDuration = 1 * time.Minute
 	h := gin.Default()
 	r := h.Group("/api")
 
-	u := userHandler{users: users}
-	r.POST("/users/login", u.login)
-	r.POST("/users", u.register)
-	r.GET("/user", u.read)
-	r.PUT("/user", u.edit)
-	r.GET("/profiles/:username", u.viewProfile)
-	r.POST("/profiles/:username/follow", u.follow)
-	r.DELETE("/profiles/:username/follow", u.unfollow)
-
 	a := articleHandler{articles: articles}
-	r.GET("/articles/feed", a.browseFeed)
-	r.GET("/articles", a.browse)
-	r.POST("/articles", a.add)
-	r.GET("/articles/:slug", a.read)
-	r.PUT("/articles/:slug", a.edit)
-	r.DELETE("/articles/:slug", a.delete)
-	r.POST("/articles/:slug/favorite", a.favorite)
-	r.DELETE("/articles/:slug/favorite", a.unfavorite)
+	u := userHandler{
+		tokenSecret:   tokenSecret,
+		tokenDuration: tokenDuration,
+		users:         users,
+	}
 
+	// public APIs
+	r.POST("/users/login", u.loginUser)
+	r.POST("/users", u.registerUser)
+	r.GET("/articles", a.browseArticles)
+	r.GET("/articles/:slug", a.getArticle)
 	r.GET("/articles/:slug/comments", a.browseComments)
-	r.POST("/articles/:slug/comments", a.addComment)
+	r.GET("/profiles/:username", u.getProfile)
+
+	// private APIs
+	r.Use(authMiddleware(tokenSecret))
+
+	// user
+	r.GET("/user", u.getCurrentUser)
+	r.PUT("/user", u.updateCurrentUser)
+
+	// profile
+	r.POST("/profiles/:username/follow", u.followUser)
+	r.DELETE("/profiles/:username/follow", u.unfollowUser)
+
+	// article
+	r.GET("/articles/feed", a.getFeed)
+	r.POST("/articles", a.createArticle)
+	r.PUT("/articles/:slug", a.updateArticle)
+	r.DELETE("/articles/:slug", a.deleteArticle)
+	r.POST("/articles/:slug/favorite", a.favoriteArticle)
+	r.DELETE("/articles/:slug/favorite", a.unfavoriteArticle)
+
+	// comment
+	r.POST("/articles/:slug/comments", a.createComment)
 	r.DELETE("/articles/:slug/comments/:id", a.deleteComment)
 
 	return h

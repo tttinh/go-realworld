@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/tinhtt/go-realworld/internal/domain"
-	httpendpoint "github.com/tinhtt/go-realworld/internal/endpoints/http"
+	httpendpoints "github.com/tinhtt/go-realworld/internal/endpoints/http"
 )
 
 func NewHTTPServer(
@@ -14,7 +14,7 @@ func NewHTTPServer(
 ) *http.Server {
 	return &http.Server{
 		Addr: ":8080",
-		Handler: httpendpoint.NewHandler(
+		Handler: httpendpoints.NewHandler(
 			users,
 			articles,
 		),

@@ -1,4 +1,4 @@
-package httpport
+package httpendpoints
 
 import (
 	"time"

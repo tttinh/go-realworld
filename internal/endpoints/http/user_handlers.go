@@ -1,17 +1,25 @@
-package httpport
+package httpendpoints
 
 import (
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type userHandler struct {
-	users domain.UserRepo
+	tokenSecret   string
+	tokenDuration time.Duration
+	users         domain.UserRepo
 }
 
-func (h *userHandler) register(c *gin.Context) {
+func (h *userHandler) createToken(id int) string {
+	t, _ := generateToken(strconv.Itoa(id), h.tokenSecret, h.tokenDuration)
+	return t
+}
+func (h *userHandler) registerUser(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -27,10 +35,11 @@ func (h *userHandler) register(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
+	res.User.Token = h.createToken(u.ID)
 	ok(c, res)
 }
 
-func (h *userHandler) login(c *gin.Context) {
+func (h *userHandler) loginUser(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -50,10 +59,11 @@ func (h *userHandler) login(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
+	res.User.Token = h.createToken(u.ID)
 	ok(c, res)
 }
 
-func (h *userHandler) read(c *gin.Context) {
+func (h *userHandler) getCurrentUser(c *gin.Context) {
 	u, err := h.users.GetByID(c, 1)
 	if err != nil {
 		error400(c, err)
@@ -62,10 +72,11 @@ func (h *userHandler) read(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
+	res.User.Token = h.createToken(u.ID)
 	ok(c, res)
 }
 
-func (h *userHandler) edit(c *gin.Context) {
+func (h *userHandler) updateCurrentUser(c *gin.Context) {
 	var req updateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -93,10 +104,11 @@ func (h *userHandler) edit(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
+	res.User.Token = h.createToken(u.ID)
 	ok(c, res)
 }
 
-func (h *userHandler) viewProfile(c *gin.Context) {
+func (h *userHandler) getProfile(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
@@ -110,7 +122,7 @@ func (h *userHandler) viewProfile(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *userHandler) follow(c *gin.Context) {
+func (h *userHandler) followUser(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
@@ -132,7 +144,7 @@ func (h *userHandler) follow(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *userHandler) unfollow(c *gin.Context) {
+func (h *userHandler) unfollowUser(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)

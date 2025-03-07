@@ -1,4 +1,4 @@
-package httpport
+package httpendpoints
 
 import (
 	"log"
@@ -12,15 +12,15 @@ type articleHandler struct {
 	articles domain.ArticleRepo
 }
 
-func (h *articleHandler) browseFeed(c *gin.Context) {
+func (h *articleHandler) getFeed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *articleHandler) browse(c *gin.Context) {
+func (h *articleHandler) browseArticles(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func (h *articleHandler) read(c *gin.Context) {
+func (h *articleHandler) getArticle(c *gin.Context) {
 	viewerID := 1
 	slug := c.Param("slug")
 	a, err := h.articles.GetDetail(c, viewerID, slug)
@@ -34,7 +34,7 @@ func (h *articleHandler) read(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *articleHandler) edit(c *gin.Context) {
+func (h *articleHandler) updateArticle(c *gin.Context) {
 	authorID := 1
 	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -79,7 +79,7 @@ func (h *articleHandler) edit(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *articleHandler) add(c *gin.Context) {
+func (h *articleHandler) createArticle(c *gin.Context) {
 	authorID := 1
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -111,7 +111,7 @@ func (h *articleHandler) add(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *articleHandler) delete(c *gin.Context) {
+func (h *articleHandler) deleteArticle(c *gin.Context) {
 	authorID := 1
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
@@ -132,7 +132,7 @@ func (h *articleHandler) delete(c *gin.Context) {
 	}
 }
 
-func (h *articleHandler) favorite(c *gin.Context) {
+func (h *articleHandler) favoriteArticle(c *gin.Context) {
 	authorID := 1
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
@@ -159,7 +159,7 @@ func (h *articleHandler) favorite(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *articleHandler) unfavorite(c *gin.Context) {
+func (h *articleHandler) unfavoriteArticle(c *gin.Context) {
 	authorID := 1
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)

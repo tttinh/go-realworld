@@ -1,4 +1,4 @@
-package httpport
+package httpendpoints
 
 import (
 	"log"
@@ -27,7 +27,7 @@ func (h *articleHandler) browseComments(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *articleHandler) addComment(c *gin.Context) {
+func (h *articleHandler) createComment(c *gin.Context) {
 	authorID := 1
 	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -1,4 +1,4 @@
-package httpport
+package httpendpoints
 
 import "github.com/tinhtt/go-realworld/internal/domain"
 
