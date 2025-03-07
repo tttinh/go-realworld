@@ -9,9 +9,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func authMiddleware(tokenSecret string) gin.HandlerFunc {
+func authMiddleware(th Token) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := validateToken(getToken(c), tokenSecret)
+		err := th.validate(c)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, newErrorRes(err))
 			c.Abort()
@@ -21,19 +21,27 @@ func authMiddleware(tokenSecret string) gin.HandlerFunc {
 	}
 }
 
-func getToken(c *gin.Context) string {
+type Token struct {
+	secret   string
+	duration time.Duration
+}
+
+func (t Token) get(c *gin.Context) string {
 	bearerToken := c.Request.Header.Get("Authorization")
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		return strings.Split(bearerToken, " ")[1]
 	}
 	return ""
-
 }
 
-func validateToken(token string, tokenSecret string) error {
-	jwtToken, err := jwt.ParseWithClaims(token, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(tokenSecret), nil
-	})
+func (t Token) validate(c *gin.Context) error {
+	jwtToken, err := jwt.ParseWithClaims(
+		t.get(c),
+		&jwt.RegisteredClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(t.secret), nil
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -73,11 +81,11 @@ func validateToken(token string, tokenSecret string) error {
 // 	return id
 // }
 
-func generateToken(id string, tokenSecret string, tokenDuration time.Duration) (string, error) {
+func (t Token) generate(id string) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Subject:   id,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenDuration)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(t.duration)),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(tokenSecret))
+	return token.SignedString([]byte(t.secret))
 }

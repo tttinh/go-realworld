@@ -3,23 +3,12 @@ package httpendpoints
 import (
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-type userHandler struct {
-	tokenSecret   string
-	tokenDuration time.Duration
-	users         domain.UserRepo
-}
-
-func (h *userHandler) createToken(id int) string {
-	t, _ := generateToken(strconv.Itoa(id), h.tokenSecret, h.tokenDuration)
-	return t
-}
-func (h *userHandler) registerUser(c *gin.Context) {
+func (h *Handler) registerUser(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -35,11 +24,11 @@ func (h *userHandler) registerUser(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token = h.createToken(u.ID)
+	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
 	ok(c, res)
 }
 
-func (h *userHandler) loginUser(c *gin.Context) {
+func (h *Handler) loginUser(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -59,11 +48,11 @@ func (h *userHandler) loginUser(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token = h.createToken(u.ID)
+	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
 	ok(c, res)
 }
 
-func (h *userHandler) getCurrentUser(c *gin.Context) {
+func (h *Handler) getCurrentUser(c *gin.Context) {
 	u, err := h.users.GetByID(c, 1)
 	if err != nil {
 		error400(c, err)
@@ -72,11 +61,11 @@ func (h *userHandler) getCurrentUser(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token = h.createToken(u.ID)
+	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
 	ok(c, res)
 }
 
-func (h *userHandler) updateCurrentUser(c *gin.Context) {
+func (h *Handler) updateCurrentUser(c *gin.Context) {
 	var req updateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -104,11 +93,11 @@ func (h *userHandler) updateCurrentUser(c *gin.Context) {
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token = h.createToken(u.ID)
+	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
 	ok(c, res)
 }
 
-func (h *userHandler) getProfile(c *gin.Context) {
+func (h *Handler) getProfile(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
@@ -122,7 +111,7 @@ func (h *userHandler) getProfile(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *userHandler) followUser(c *gin.Context) {
+func (h *Handler) followUser(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
@@ -144,7 +133,7 @@ func (h *userHandler) followUser(c *gin.Context) {
 	ok(c, res)
 }
 
-func (h *userHandler) unfollowUser(c *gin.Context) {
+func (h *Handler) unfollowUser(c *gin.Context) {
 	followerID := 1
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)

@@ -7,27 +7,7 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-func (h *articleHandler) browseComments(c *gin.Context) {
-	slug := c.Param("slug")
-	a, err := h.articles.GetBySlug(c, slug)
-	if err != nil {
-		error404(c)
-		return
-	}
-
-	comments, err := h.articles.GetAllComments(c, a.ID)
-	if err != nil {
-		log.Println(err)
-		error500(c)
-		return
-	}
-
-	var res commentsRes
-	res.fromEntity(comments)
-	ok(c, res)
-}
-
-func (h *articleHandler) createComment(c *gin.Context) {
+func (h *Handler) createComment(c *gin.Context) {
 	authorID := 1
 	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -58,5 +38,3 @@ func (h *articleHandler) createComment(c *gin.Context) {
 	res.fromEntity(comment)
 	ok(c, res)
 }
-
-func (h *articleHandler) deleteComment(c *gin.Context) {}
