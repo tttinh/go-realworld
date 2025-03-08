@@ -6,6 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type loginUserReq struct {
+	User struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	} `json:"user"`
+}
+
 func (h *Handler) loginUser(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {

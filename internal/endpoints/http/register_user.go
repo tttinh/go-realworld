@@ -7,6 +7,14 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
+type registerUserReq struct {
+	User struct {
+		Name     string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	} `json:"user"`
+}
+
 func (h *Handler) registerUser(c *gin.Context) {
 	var req registerUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {

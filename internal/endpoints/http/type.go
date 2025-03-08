@@ -77,31 +77,6 @@ func (res *batchCommentsRes) fromEntity(comments []domain.Comment) {
 	}
 }
 
-type registerUserReq struct {
-	User struct {
-		Name     string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	} `json:"user"`
-}
-
-type loginUserReq struct {
-	User struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	} `json:"user"`
-}
-
-type updateUserReq struct {
-	User struct {
-		Name     string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Bio      string `json:"bio"`
-		Image    string `json:"image"`
-	} `json:"user"`
-}
-
 type userRes struct {
 	User struct {
 		Name  string `json:"username"`

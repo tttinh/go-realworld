@@ -7,6 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type updateUserReq struct {
+	User struct {
+		Name     string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Bio      string `json:"bio"`
+		Image    string `json:"image"`
+	} `json:"user"`
+}
+
 func (h *Handler) updateCurrentUser(c *gin.Context) {
 	var req updateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
