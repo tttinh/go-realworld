@@ -20,7 +20,7 @@ func NewHandler(
 ) http.Handler {
 	t := Token{
 		secret:   "ABC",
-		duration: 5 * time.Minute,
+		duration: 1 * time.Hour,
 	}
 
 	h := Handler{

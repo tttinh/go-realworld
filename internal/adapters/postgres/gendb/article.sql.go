@@ -194,7 +194,13 @@ func (q *Queries) InsertArticle(ctx context.Context, arg InsertArticleParams) (A
 }
 
 const insertArticleTag = `-- name: InsertArticleTag :exec
-INSERT INTO article_tags (article_id, tag_id) VALUES ($1, $2)
+INSERT INTO article_tags (
+    article_id,
+    tag_id
+) VALUES (
+    $1,
+    $2
+)
 `
 
 type InsertArticleTagParams struct {
@@ -228,8 +234,14 @@ func (q *Queries) InsertFavorite(ctx context.Context, arg InsertFavoriteParams) 
 }
 
 const insertTag = `-- name: InsertTag :one
-INSERT INTO tags (name) VALUES ($1)
-ON CONFLICT DO NOTHING
+INSERT INTO tags (
+    name
+) VALUES (
+    $1
+)
+ON CONFLICT
+    ON CONSTRAINT tags_name_key
+DO UPDATE SET name = $1
 RETURNING id
 `
 

@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func createSlug(s string) string {
-	return makeSlug(s) + "-" + makeString(12)
+func makeSlugWithRandomString(s string) string {
+	return makeSlug(s) + "-" + makeRandomString(12)
 }
 
 func makeSlug(s string) string {
@@ -27,7 +27,7 @@ func makeSlug(s string) string {
 	return slug
 }
 
-func makeString(length int) string {
+func makeRandomString(length int) string {
 	rng := rand.New(rand.NewPCG(0, uint64(time.Now().UnixNano())))
 	chars := []rune("abcdefghijklmnopqrstuvwxyz0123456789")
 	result := make([]rune, length)

@@ -1,8 +1,6 @@
 package httpendpoints
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
@@ -31,6 +29,7 @@ func (h *Handler) createArticle(c *gin.Context) {
 		req.Article.Body,
 		req.Article.Tags,
 	)
+
 	a, err := h.articles.Add(c, a)
 	if err != nil {
 		error400(c, err)
@@ -39,7 +38,6 @@ func (h *Handler) createArticle(c *gin.Context) {
 
 	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
 	if err != nil {
-		log.Println(err)
 		error500(c)
 		return
 	}

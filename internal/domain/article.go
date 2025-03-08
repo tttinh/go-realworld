@@ -19,7 +19,7 @@ type Article struct {
 func NewArticle(authorID int, title, description, body string, tags []string) Article {
 	return Article{
 		AuthorID:    authorID,
-		Slug:        createSlug(title),
+		Slug:        makeSlug(title),
 		Title:       title,
 		Description: description,
 		Body:        body,
@@ -34,7 +34,7 @@ func (a *Article) Update(title string, description string, body string) error {
 
 	if a.Title != title && len(title) > 0 {
 		a.Title = title
-		a.Slug = createSlug(title)
+		a.Slug = makeSlug(title)
 	}
 
 	if len(description) > 0 {
@@ -46,6 +46,10 @@ func (a *Article) Update(title string, description string, body string) error {
 	}
 
 	return nil
+}
+
+func (a *Article) NewSlug() {
+	a.Slug = makeSlugWithRandomString(a.Title)
 }
 
 type Author struct {

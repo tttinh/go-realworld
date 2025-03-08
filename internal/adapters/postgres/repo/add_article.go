@@ -2,6 +2,7 @@ package pgrepo
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
 	"github.com/tinhtt/go-realworld/internal/domain"
@@ -37,13 +38,16 @@ func createArticleTx(q *gendb.Queries, ctx context.Context, a domain.Article) (d
 	}
 	dbArticle, err := q.InsertArticle(ctx, param)
 	if err != nil {
+		if derr := toDomainError(err); derr != nil {
+			return domain.Article{}, derr
+		}
 		return domain.Article{}, err
 	}
 
 	for _, tag := range a.Tags {
 		tagID, err := q.InsertTag(ctx, tag)
 		if err != nil {
-			return domain.Article{}, nil
+			return domain.Article{}, fmt.Errorf("insert tag: %w", err)
 		}
 
 		err = q.InsertArticleTag(ctx, gendb.InsertArticleTagParams{
@@ -51,7 +55,7 @@ func createArticleTx(q *gendb.Queries, ctx context.Context, a domain.Article) (d
 			TagID:     tagID,
 		})
 		if err != nil {
-			return domain.Article{}, nil
+			return domain.Article{}, fmt.Errorf("insert article tag: %w", err)
 		}
 	}
 
