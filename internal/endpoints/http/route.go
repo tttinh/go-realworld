@@ -36,9 +36,10 @@ func NewHandler(
 	api.POST("/users/login", h.loginUser)
 	api.POST("/users", h.registerUser)
 	api.GET("/articles", h.browseArticles)
-	api.GET("/articles/:slug", h.getArticle)
 	api.GET("/articles/:slug/comments", h.browseComments)
+	api.GET("/articles/:slug", h.getArticle)
 	api.GET("/profiles/:username", h.getProfile)
+	api.GET("/tags", h.browseTags)
 
 	// private APIs
 	api.Use(authMiddleware(t))

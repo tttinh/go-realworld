@@ -16,13 +16,14 @@ type Article struct {
 	UpdatedAt   time.Time
 }
 
-func NewArticle(authorID int, title, description, body string) Article {
+func NewArticle(authorID int, title, description, body string, tags []string) Article {
 	return Article{
 		AuthorID:    authorID,
 		Slug:        createSlug(title),
 		Title:       title,
 		Description: description,
 		Body:        body,
+		Tags:        tags,
 	}
 }
 

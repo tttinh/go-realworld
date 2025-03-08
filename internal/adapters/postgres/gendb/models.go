@@ -19,6 +19,11 @@ type Article struct {
 	UpdatedAt   pgtype.Timestamptz
 }
 
+type ArticleTag struct {
+	ArticleID int64
+	TagID     int64
+}
+
 type Comment struct {
 	ID        int64
 	Body      string
@@ -39,9 +44,8 @@ type Follow struct {
 }
 
 type Tag struct {
-	ID        int64
-	Tag       string
-	ArticleID pgtype.Int8
+	ID   int64
+	Name string
 }
 
 type User struct {

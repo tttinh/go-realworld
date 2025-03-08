@@ -2,6 +2,7 @@ package httpendpoints
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,35 +52,27 @@ func (t Token) validate(c *gin.Context) error {
 	return err
 }
 
-// func getIDFromJWT(tokenString string) (string, error) {
-// 	secret := viper.GetString("API_SECRET")
-// 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-// 		return []byte(secret), nil
-// 	})
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-// 	if !ok {
-// 		return "", err
-// 	}
-// 	// check if token is not expired
-// 	if !token.Valid {
-// 		return "", err
-// 	}
-// 	return claims.Subject, nil
-// }
+func (t Token) getUserID(c *gin.Context) (int, bool) {
+	tokenString := t.get(c)
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(t.secret), nil
+	})
+	if err != nil {
+		return 0, false
+	}
 
-// func getIDFromToken(token string) string {
-// 	id, _ := getIDFromJWT(token)
-// 	return id
-// }
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return 0, false
+	}
 
-// func getIDFromHeaderr(c *gin.Context) string {
-// 	tokenString := getToken(c)
-// 	id, _ := getIDFromJWT(tokenString)
-// 	return id
-// }
+	if !token.Valid {
+		return 0, false
+	}
+
+	id, _ := strconv.Atoi(claims.Subject)
+	return id, true
+}
 
 func (t Token) generate(id string) (string, error) {
 	claims := jwt.RegisteredClaims{

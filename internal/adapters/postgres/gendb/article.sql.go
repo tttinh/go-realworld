@@ -193,6 +193,20 @@ func (q *Queries) InsertArticle(ctx context.Context, arg InsertArticleParams) (A
 	return i, err
 }
 
+const insertArticleTag = `-- name: InsertArticleTag :exec
+INSERT INTO article_tags (article_id, tag_id) VALUES ($1, $2)
+`
+
+type InsertArticleTagParams struct {
+	ArticleID int64
+	TagID     int64
+}
+
+func (q *Queries) InsertArticleTag(ctx context.Context, arg InsertArticleTagParams) error {
+	_, err := q.db.Exec(ctx, insertArticleTag, arg.ArticleID, arg.TagID)
+	return err
+}
+
 const insertFavorite = `-- name: InsertFavorite :exec
 INSERT INTO favorites (
     user_id,
@@ -211,6 +225,19 @@ type InsertFavoriteParams struct {
 func (q *Queries) InsertFavorite(ctx context.Context, arg InsertFavoriteParams) error {
 	_, err := q.db.Exec(ctx, insertFavorite, arg.UserID, arg.ArticleID)
 	return err
+}
+
+const insertTag = `-- name: InsertTag :one
+INSERT INTO tags (name) VALUES ($1)
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+func (q *Queries) InsertTag(ctx context.Context, name string) (int64, error) {
+	row := q.db.QueryRow(ctx, insertTag, name)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateArticle = `-- name: UpdateArticle :one

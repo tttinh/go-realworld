@@ -11,11 +11,13 @@ import (
 
 type Articles struct {
 	*gendb.Queries
+	db *pgx.Conn
 }
 
 func NewArticles(db *pgx.Conn) *Articles {
 	return &Articles{
 		Queries: gendb.New(db),
+		db:      db,
 	}
 }
 
@@ -51,31 +53,6 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 
 func (r *Articles) GetBySlug(ctx context.Context, slug string) (domain.Article, error) {
 	row, err := r.GetArticleBySlug(ctx, slug)
-	if err != nil {
-		return domain.Article{}, err
-	}
-
-	return domain.Article{
-		ID:          int(row.ID),
-		AuthorID:    int(row.AuthorID),
-		Slug:        row.Slug,
-		Title:       row.Title,
-		Description: row.Description,
-		Body:        row.Body,
-		CreatedAt:   row.CreatedAt.Time,
-		UpdatedAt:   row.UpdatedAt.Time,
-	}, nil
-}
-
-func (r *Articles) Add(ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := gendb.InsertArticleParams{
-		AuthorID:    int64(a.AuthorID),
-		Slug:        a.Slug,
-		Title:       a.Title,
-		Description: a.Description,
-		Body:        a.Body,
-	}
-	row, err := r.InsertArticle(ctx, param)
 	if err != nil {
 		return domain.Article{}, err
 	}

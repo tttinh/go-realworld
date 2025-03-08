@@ -17,7 +17,7 @@ type createArticleReq struct {
 }
 
 func (h *Handler) createArticle(c *gin.Context) {
-	authorID := 1
+	authorID, _ := h.token.getUserID(c)
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		error400(c, err)
@@ -29,6 +29,7 @@ func (h *Handler) createArticle(c *gin.Context) {
 		req.Article.Title,
 		req.Article.Description,
 		req.Article.Body,
+		req.Article.Tags,
 	)
 	a, err := h.articles.Add(c, a)
 	if err != nil {

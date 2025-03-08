@@ -88,3 +88,11 @@ INSERT INTO favorites (
 -- name: DeleteFavorite :exec
 DELETE FROM favorites
 WHERE user_id=$1 AND article_id=$2;
+
+-- name: InsertTag :one
+INSERT INTO tags (name) VALUES ($1)
+ON CONFLICT DO NOTHING
+RETURNING id;
+
+-- name: InsertArticleTag :exec
+INSERT INTO article_tags (article_id, tag_id) VALUES ($1, $2);

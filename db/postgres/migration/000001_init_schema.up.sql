@@ -58,12 +58,17 @@ create table if not exists favorites (
 
 create table if not exists tags (
     id bigserial primary key,
-    tag text not null,
+    name text not null unique
+);
+
+create table if not exists article_tags (
     article_id bigint,
+    tag_id bigint,
 
     foreign key (article_id) references articles(id),
+    foreign key (tag_id) references tags(id),
 
-    unique (tag, article_id)
+    primary key (article_id, tag_id)
 );
 
 commit;
