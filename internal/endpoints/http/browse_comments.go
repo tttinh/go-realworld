@@ -21,7 +21,7 @@ func (h *Handler) browseComments(c *gin.Context) {
 		return
 	}
 
-	var res commentsRes
+	var res batchCommentsRes
 	res.fromEntity(comments)
 	ok(c, res)
 }

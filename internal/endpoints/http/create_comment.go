@@ -7,6 +7,12 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
+type createCommentReq struct {
+	Comment struct {
+		Body string `json:"body"`
+	} `json:"comment"`
+}
+
 func (h *Handler) createComment(c *gin.Context) {
 	authorID := 1
 	var req createCommentReq

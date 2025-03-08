@@ -6,6 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type updateArticleReq struct {
+	Article struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Body        string `json:"body"`
+	} `json:"article"`
+}
+
 func (h *Handler) updateArticle(c *gin.Context) {
 	authorID := 1
 	var req updateArticleReq

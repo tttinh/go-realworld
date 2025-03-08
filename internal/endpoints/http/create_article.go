@@ -7,6 +7,15 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
+type createArticleReq struct {
+	Article struct {
+		Title       string   `json:"title"`
+		Description string   `json:"description"`
+		Body        string   `json:"body"`
+		Tags        []string `json:"tagList"`
+	} `json:"article"`
+}
+
 func (h *Handler) createArticle(c *gin.Context) {
 	authorID := 1
 	var req createArticleReq
