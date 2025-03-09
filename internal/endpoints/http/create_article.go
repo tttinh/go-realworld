@@ -1,6 +1,7 @@
 package httpendpoints
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,9 +33,20 @@ func (h *Handler) createArticle(c *gin.Context) {
 		req.Article.Tags,
 	)
 
-	a, err := h.articles.Add(c, a)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	attempts := 3
+	for attempts > 0 {
+		_, err := h.articles.Add(c, a)
+		if err == nil {
+			break
+		}
+
+		if errors.Is(err, domain.ErrDuplicateKey) {
+			attempts -= 1
+			a.NewSlug()
+			continue
+		}
+
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
