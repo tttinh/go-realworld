@@ -8,7 +8,8 @@ import (
 )
 
 func (h *Handler) getCurrentUser(c *gin.Context) {
-	u, err := h.users.GetByID(c, 1)
+	userID, _ := h.jwt.GetUserID(c)
+	u, err := h.users.GetByID(c, userID)
 	if err != nil {
 		abort(c, err)
 		return

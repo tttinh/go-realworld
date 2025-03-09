@@ -14,7 +14,7 @@ type createCommentReq struct {
 }
 
 func (h *Handler) createComment(c *gin.Context) {
-	authorID := 1
+	authorID, _ := h.jwt.GetUserID(c)
 	var req createCommentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)

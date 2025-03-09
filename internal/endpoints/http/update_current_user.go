@@ -24,7 +24,8 @@ func (h *Handler) updateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	u, err := h.users.GetByID(c, 1)
+	userID, _ := h.jwt.GetUserID(c)
+	u, err := h.users.GetByID(c, userID)
 	if err != nil {
 		abort(c, err)
 		return

@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) favoriteArticle(c *gin.Context) {
-	authorID := 1
+	authorID, _ := h.jwt.GetUserID(c)
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {

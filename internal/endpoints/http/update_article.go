@@ -16,7 +16,7 @@ type updateArticleReq struct {
 }
 
 func (h *Handler) updateArticle(c *gin.Context) {
-	authorID := 1
+	authorID, _ := h.jwt.GetUserID(c)
 	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
