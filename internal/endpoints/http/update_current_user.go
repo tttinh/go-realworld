@@ -1,7 +1,7 @@
 package httpendpoints
 
 import (
-	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -20,13 +20,13 @@ type updateUserReq struct {
 func (h *Handler) updateCurrentUser(c *gin.Context) {
 	var req updateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := h.users.GetByID(c, 1)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -38,13 +38,12 @@ func (h *Handler) updateCurrentUser(c *gin.Context) {
 
 	u, err = h.users.Edit(c, u)
 	if err != nil {
-		log.Println(err)
-		error500(c)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
-	ok(c, res)
+	res.User.Token, _ = h.jwt.Generate(strconv.Itoa(u.ID))
+	c.JSON(http.StatusOK, res)
 }

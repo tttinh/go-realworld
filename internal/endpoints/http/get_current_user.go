@@ -1,6 +1,7 @@
 package httpendpoints
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -9,12 +10,12 @@ import (
 func (h *Handler) getCurrentUser(c *gin.Context) {
 	u, err := h.users.GetByID(c, 1)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
-	ok(c, res)
+	res.User.Token, _ = h.jwt.Generate(strconv.Itoa(u.ID))
+	c.JSON(http.StatusOK, res)
 }

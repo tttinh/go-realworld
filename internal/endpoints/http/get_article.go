@@ -1,6 +1,8 @@
 package httpendpoints
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,11 +11,11 @@ func (h *Handler) getArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetDetail(c, viewerID, slug)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	var res articleRes
 	res.fromEntity(a)
-	ok(c, res)
+	c.JSON(http.StatusOK, res)
 }

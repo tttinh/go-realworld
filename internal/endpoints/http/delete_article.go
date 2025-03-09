@@ -1,7 +1,7 @@
 package httpendpoints
 
 import (
-	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,18 +11,17 @@ func (h *Handler) deleteArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if authorID != a.AuthorID {
-		error403(c)
+		c.AbortWithError(http.StatusForbidden, ErrAccessForbidden)
 		return
 	}
 
 	if err := h.articles.Remove(c, a.ID); err != nil {
-		log.Println(err)
-		error500(c)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 }

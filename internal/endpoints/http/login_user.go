@@ -1,6 +1,7 @@
 package httpendpoints
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -16,23 +17,23 @@ type loginUserReq struct {
 func (h *Handler) loginUser(c *gin.Context) {
 	var req loginUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	u, err := h.users.GetByEmail(c, req.User.Email)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if u.Password != req.User.Password {
-		error400(c, ErrWrongPassword)
+		c.AbortWithError(http.StatusBadRequest, ErrWrongPassword)
 		return
 	}
 
 	var res userRes
 	res.fromEntity(u)
-	res.User.Token, _ = h.token.generate(strconv.Itoa(u.ID))
-	ok(c, res)
+	res.User.Token, _ = h.jwt.Generate(strconv.Itoa(u.ID))
+	c.JSON(http.StatusOK, res)
 }

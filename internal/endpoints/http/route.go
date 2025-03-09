@@ -9,7 +9,7 @@ import (
 )
 
 type Handler struct {
-	token    Token
+	jwt      JWT
 	articles domain.ArticleRepo
 	users    domain.UserRepo
 }
@@ -18,18 +18,16 @@ func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
-	t := Token{
-		secret:   "ABC",
-		duration: 1 * time.Hour,
-	}
+	jwt := NewJWT("ABC", 2*time.Hour)
 
 	h := Handler{
-		token:    t,
+		jwt:      jwt,
 		articles: articles,
 		users:    users,
 	}
 
 	router := gin.Default()
+	router.Use(ErrorMiddleware())
 	api := router.Group("/api")
 
 	// public APIs
@@ -42,7 +40,7 @@ func NewHandler(
 	api.GET("/tags", h.browseTags)
 
 	// private APIs
-	api.Use(authMiddleware(t))
+	api.Use(AuthMiddleware(jwt))
 
 	// user
 	api.GET("/user", h.getCurrentUser)

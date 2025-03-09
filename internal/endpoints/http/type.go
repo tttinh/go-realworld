@@ -1,9 +1,16 @@
 package httpendpoints
 
 import (
+	"errors"
 	"time"
 
 	"github.com/tinhtt/go-realworld/internal/domain"
+)
+
+var (
+	ErrAccessForbidden = errors.New("access forbidden")
+	ErrNotFound        = errors.New("entity not found")
+	ErrWrongPassword   = errors.New("wrong password")
 )
 
 type articleRes struct {

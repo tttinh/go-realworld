@@ -1,6 +1,8 @@
 package httpendpoints
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
@@ -15,10 +17,10 @@ type createArticleReq struct {
 }
 
 func (h *Handler) createArticle(c *gin.Context) {
-	authorID, _ := h.token.getUserID(c)
+	authorID, _ := h.jwt.GetUserID(c)
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -32,17 +34,17 @@ func (h *Handler) createArticle(c *gin.Context) {
 
 	a, err := h.articles.Add(c, a)
 	if err != nil {
-		error400(c, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
 	if err != nil {
-		error500(c)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	var res articleRes
 	res.fromEntity(detail)
-	ok(c, res)
+	c.JSON(http.StatusOK, res)
 }

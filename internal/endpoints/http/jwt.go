@@ -1,7 +1,6 @@
 package httpendpoints
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -10,24 +9,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func authMiddleware(th Token) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		err := th.validate(c)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, newErrorRes(err))
-			c.Abort()
-			return
-		}
-		c.Next()
-	}
-}
-
-type Token struct {
+type JWT struct {
 	secret   string
 	duration time.Duration
 }
 
-func (t Token) get(c *gin.Context) string {
+func NewJWT(secret string, duration time.Duration) JWT {
+	return JWT{
+		secret:   secret,
+		duration: duration,
+	}
+}
+
+func (t JWT) Get(c *gin.Context) string {
 	bearerToken := c.Request.Header.Get("Authorization")
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		return strings.Split(bearerToken, " ")[1]
@@ -35,9 +29,9 @@ func (t Token) get(c *gin.Context) string {
 	return ""
 }
 
-func (t Token) validate(c *gin.Context) error {
+func (t JWT) Validate(c *gin.Context) error {
 	jwtToken, err := jwt.ParseWithClaims(
-		t.get(c),
+		t.Get(c),
 		&jwt.RegisteredClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(t.secret), nil
@@ -52,8 +46,8 @@ func (t Token) validate(c *gin.Context) error {
 	return err
 }
 
-func (t Token) getUserID(c *gin.Context) (int, bool) {
-	tokenString := t.get(c)
+func (t JWT) GetUserID(c *gin.Context) (int, bool) {
+	tokenString := t.Get(c)
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(t.secret), nil
 	})
@@ -74,7 +68,7 @@ func (t Token) getUserID(c *gin.Context) (int, bool) {
 	return id, true
 }
 
-func (t Token) generate(id string) (string, error) {
+func (t JWT) Generate(id string) (string, error) {
 	claims := jwt.RegisteredClaims{
 		Subject:   id,
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(t.duration)),
