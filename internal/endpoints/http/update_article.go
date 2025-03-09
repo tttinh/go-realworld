@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type updateArticleReq struct {
@@ -25,12 +26,12 @@ func (h *Handler) updateArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		abort(c, err)
 		return
 	}
 
 	if authorID != a.AuthorID {
-		c.AbortWithError(http.StatusForbidden, ErrAccessForbidden)
+		c.AbortWithError(http.StatusForbidden, domain.ErrForbidden)
 		return
 	}
 
@@ -42,7 +43,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 
 	a, err = h.articles.Edit(c, a)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

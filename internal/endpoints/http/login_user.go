@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type loginUserReq struct {
@@ -23,12 +24,12 @@ func (h *Handler) loginUser(c *gin.Context) {
 
 	u, err := h.users.GetByEmail(c, req.User.Email)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		abort(c, err)
 		return
 	}
 
 	if u.Password != req.User.Password {
-		c.AbortWithError(http.StatusBadRequest, ErrWrongPassword)
+		c.AbortWithError(http.StatusBadRequest, domain.ErrWrongPassword)
 		return
 	}
 

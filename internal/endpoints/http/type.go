@@ -2,16 +2,21 @@ package httpendpoints
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-var (
-	ErrAccessForbidden = errors.New("access forbidden")
-	ErrNotFound        = errors.New("entity not found")
-	ErrWrongPassword   = errors.New("wrong password")
-)
+func abort(c *gin.Context, err error) {
+	if errors.Is(err, domain.ErrNotFound) {
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	c.AbortWithError(http.StatusInternalServerError, err)
+}
 
 type articleRes struct {
 	Article struct {

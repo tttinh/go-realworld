@@ -10,7 +10,7 @@ func (h *Handler) browseComments(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, ErrNotFound)
+		abort(c, err)
 		return
 	}
 

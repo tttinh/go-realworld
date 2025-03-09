@@ -26,7 +26,7 @@ func (h *Handler) updateCurrentUser(c *gin.Context) {
 
 	u, err := h.users.GetByID(c, 1)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		abort(c, err)
 		return
 	}
 

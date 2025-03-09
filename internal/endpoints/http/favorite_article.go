@@ -11,7 +11,7 @@ func (h *Handler) favoriteArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetBySlug(c, slug)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		abort(c, err)
 		return
 	}
 

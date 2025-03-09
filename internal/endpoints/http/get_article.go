@@ -11,7 +11,7 @@ func (h *Handler) getArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.GetDetail(c, viewerID, slug)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		abort(c, err)
 		return
 	}
 
