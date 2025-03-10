@@ -16,7 +16,7 @@ type UserRepo interface {
 type ArticleRepo interface {
 	GetDetail(ctx context.Context, viewerID int, slug string) (ArticleDetail, error)
 
-	GetBySlug(ctx context.Context, slug string) (Article, error)
+	Get(ctx context.Context, slug string) (Article, error)
 	Add(ctx context.Context, a Article) (Article, error)
 	Edit(ctx context.Context, a Article) (Article, error)
 	Remove(ctx context.Context, id int) error

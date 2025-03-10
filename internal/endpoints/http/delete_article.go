@@ -10,7 +10,7 @@ import (
 func (h *Handler) deleteArticle(c *gin.Context) {
 	authorID, _ := h.jwt.GetUserID(c)
 	slug := c.Param("slug")
-	a, err := h.articles.GetBySlug(c, slug)
+	a, err := h.articles.Get(c, slug)
 	if err != nil {
 		abort(c, err)
 		return

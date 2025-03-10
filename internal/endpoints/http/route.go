@@ -18,7 +18,7 @@ func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
-	jwt := NewJWT("ABC", 2*time.Hour)
+	jwt := NewJWT("ABC", 999*time.Hour)
 
 	h := Handler{
 		jwt:      jwt,

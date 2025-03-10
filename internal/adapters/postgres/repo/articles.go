@@ -37,6 +37,7 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 			Title:       row.Title,
 			Description: row.Description,
 			Body:        row.Body,
+			Tags:        row.Tags,
 			CreatedAt:   row.CreatedAt.Time,
 			UpdatedAt:   row.UpdatedAt.Time,
 		},
@@ -51,7 +52,7 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 	}, nil
 }
 
-func (r *Articles) GetBySlug(ctx context.Context, slug string) (domain.Article, error) {
+func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
 	row, err := r.GetArticleBySlug(ctx, slug)
 	if err != nil {
 		return domain.Article{}, err

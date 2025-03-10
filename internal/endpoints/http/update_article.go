@@ -1,6 +1,7 @@
 package httpendpoints
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 	}
 
 	slug := c.Param("slug")
-	a, err := h.articles.GetBySlug(c, slug)
+	a, err := h.articles.Get(c, slug)
 	if err != nil {
 		abort(c, err)
 		return
@@ -37,13 +38,31 @@ func (h *Handler) updateArticle(c *gin.Context) {
 
 	err = a.Update(req.Article.Title, req.Article.Description, req.Article.Body)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	a, err = h.articles.Edit(c, a)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+	ok := false
+	attempts := 3
+	for attempts > 0 {
+		_, err := h.articles.Edit(c, a)
+		if err == nil {
+			ok = true
+			break
+		}
+
+		if errors.Is(err, domain.ErrDuplicateKey) {
+			attempts -= 1
+			a.NewSlug()
+			continue
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	if !ok {
+		c.AbortWithError(http.StatusBadRequest, domain.ErrDuplicateKey)
 		return
 	}
 

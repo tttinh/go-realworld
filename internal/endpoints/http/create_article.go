@@ -18,7 +18,7 @@ type createArticleReq struct {
 }
 
 func (h *Handler) createArticle(c *gin.Context) {
-	authorID, _ := h.jwt.GetUserID(c)
+	userID, _ := h.jwt.GetUserID(c)
 	var req createArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -26,17 +26,19 @@ func (h *Handler) createArticle(c *gin.Context) {
 	}
 
 	a := domain.NewArticle(
-		authorID,
+		userID,
 		req.Article.Title,
 		req.Article.Description,
 		req.Article.Body,
 		req.Article.Tags,
 	)
 
+	ok := false
 	attempts := 3
 	for attempts > 0 {
 		_, err := h.articles.Add(c, a)
 		if err == nil {
+			ok = true
 			break
 		}
 
@@ -44,13 +46,18 @@ func (h *Handler) createArticle(c *gin.Context) {
 			attempts -= 1
 			a.NewSlug()
 			continue
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+	}
 
-		c.AbortWithError(http.StatusInternalServerError, err)
+	if !ok {
+		c.AbortWithError(http.StatusBadRequest, domain.ErrDuplicateKey)
 		return
 	}
 
-	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
+	detail, err := h.articles.GetDetail(c, userID, a.Slug)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

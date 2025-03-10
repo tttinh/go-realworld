@@ -69,10 +69,16 @@ author_cte AS (
     FROM users
     WHERE id=(SELECT author_id FROM article_cte LIMIT 1)
 ),
-favorites_cte AS (
+favorite_cte AS (
     SELECT COUNT(*) as count
     FROM favorites
     WHERE article_id=(SELECT id FROM article_cte LIMIT 1)
+),
+tag_cte AS (
+	SELECT array_agg(t.name) FILTER (WHERE t.name IS NOT NULL)::text[] AS names
+	FROM tags t
+	LEFT JOIN article_tags at ON t.id = at.tag_id
+	WHERE at.article_id=(SELECT id FROM article_cte LIMIT 1)
 )
 SELECT
     a.id,
@@ -82,6 +88,7 @@ SELECT
     a.body,
     a.created_at,
     a.updated_at,
+    t.names AS tags,
     f.count AS favorites_count,
     CASE WHEN EXISTS (
         SELECT 1 FROM favorites
@@ -99,7 +106,7 @@ SELECT
     author.username,
     author.bio,
     author.image
-FROM article_cte AS a, author_cte as author, favorites_cte as f
+FROM article_cte AS a, author_cte as author, favorite_cte as f, tag_cte as t
 `
 
 type GetArticleDetailParams struct {
@@ -115,6 +122,7 @@ type GetArticleDetailRow struct {
 	Body           string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	Tags           []string
 	FavoritesCount int64
 	Favorited      bool
 	Following      bool
@@ -135,6 +143,7 @@ func (q *Queries) GetArticleDetail(ctx context.Context, arg GetArticleDetailPara
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Tags,
 		&i.FavoritesCount,
 		&i.Favorited,
 		&i.Following,
