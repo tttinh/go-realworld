@@ -1,21 +1,21 @@
-package pgrepo
+package postgres
 
 import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres/sqlc"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type Users struct {
-	*gendb.Queries
+	*sqlc.Queries
 }
 
 func NewUsers(db *pgx.Conn) *Users {
 	return &Users{
-		Queries: gendb.New(db),
+		Queries: sqlc.New(db),
 	}
 }
 
@@ -52,7 +52,7 @@ func (r *Users) GetByEmail(ctx context.Context, email string) (domain.User, erro
 }
 
 func (r *Users) Add(ctx context.Context, u domain.User) (domain.User, error) {
-	param := gendb.InsertUserParams{
+	param := sqlc.InsertUserParams{
 		Username: u.Name,
 		Email:    u.Email,
 		Password: u.Password,
@@ -73,7 +73,7 @@ func (r *Users) Add(ctx context.Context, u domain.User) (domain.User, error) {
 }
 
 func (r *Users) Edit(ctx context.Context, u domain.User) (domain.User, error) {
-	param := gendb.UpdateUserParams{
+	param := sqlc.UpdateUserParams{
 		ID:       int64(u.ID),
 		Username: pgtype.Text{String: u.Name, Valid: len(u.Name) > 0},
 		Email:    pgtype.Text{String: u.Email, Valid: len(u.Email) > 0},
@@ -97,7 +97,7 @@ func (r *Users) Edit(ctx context.Context, u domain.User) (domain.User, error) {
 }
 
 func (r *Users) GetProfile(ctx context.Context, followerID int, followingUsername string) (domain.Profile, error) {
-	p, err := r.GetProfileByName(ctx, gendb.GetProfileByNameParams{
+	p, err := r.GetProfileByName(ctx, sqlc.GetProfileByNameParams{
 		FollowerID:    int64(followerID),
 		FollowingName: followingUsername,
 	})
@@ -115,14 +115,14 @@ func (r *Users) GetProfile(ctx context.Context, followerID int, followingUsernam
 }
 
 func (r *Users) Follow(ctx context.Context, followerID int, followingID int) error {
-	return r.InsertFollow(ctx, gendb.InsertFollowParams{
+	return r.InsertFollow(ctx, sqlc.InsertFollowParams{
 		FollowerID:  int64(followerID),
 		FollowingID: int64(followingID),
 	})
 }
 
 func (r *Users) Unfollow(ctx context.Context, followerID int, followingID int) error {
-	return r.DeleteFollow(ctx, gendb.DeleteFollowParams{
+	return r.DeleteFollow(ctx, sqlc.DeleteFollowParams{
 		FollowerID:  int64(followerID),
 		FollowingID: int64(followingID),
 	})

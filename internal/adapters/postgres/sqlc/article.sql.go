@@ -3,7 +3,7 @@
 //   sqlc v1.28.0
 // source: article.sql
 
-package gendb
+package sqlc
 
 import (
 	"context"

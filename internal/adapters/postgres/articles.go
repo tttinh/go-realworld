@@ -1,28 +1,28 @@
-package pgrepo
+package postgres
 
 import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres/sqlc"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
 type Articles struct {
-	*gendb.Queries
+	*sqlc.Queries
 	db *pgx.Conn
 }
 
 func NewArticles(db *pgx.Conn) *Articles {
 	return &Articles{
-		Queries: gendb.New(db),
+		Queries: sqlc.New(db),
 		db:      db,
 	}
 }
 
 func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (domain.ArticleDetail, error) {
-	row, err := r.FetchArticleDetail(ctx, gendb.FetchArticleDetailParams{
+	row, err := r.FetchArticleDetail(ctx, sqlc.FetchArticleDetailParams{
 		Slug:     slug,
 		ViewerID: int64(viewerID),
 	})
@@ -71,7 +71,7 @@ func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error)
 }
 
 func (r *Articles) Edit(ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := gendb.UpdateArticleParams{
+	param := sqlc.UpdateArticleParams{
 		ID:          int64(a.ID),
 		AuthorID:    int64(a.AuthorID),
 		Slug:        pgtype.Text{String: a.Slug, Valid: len(a.Slug) > 0},
@@ -101,14 +101,14 @@ func (r *Articles) Remove(ctx context.Context, id int) error {
 }
 
 func (r *Articles) AddFavorite(ctx context.Context, userID int, articleID int) error {
-	return r.InsertFavorite(ctx, gendb.InsertFavoriteParams{
+	return r.InsertFavorite(ctx, sqlc.InsertFavoriteParams{
 		UserID:    int64(userID),
 		ArticleID: int64(articleID),
 	})
 }
 
 func (r *Articles) RemoveFavorite(ctx context.Context, userID int, articleID int) error {
-	return r.DeleteFavorite(ctx, gendb.DeleteFavoriteParams{
+	return r.DeleteFavorite(ctx, sqlc.DeleteFavoriteParams{
 		UserID:    int64(userID),
 		ArticleID: int64(articleID),
 	})

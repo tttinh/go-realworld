@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/tinhtt/go-realworld/internal/adapters"
-	pgrepo "github.com/tinhtt/go-realworld/internal/adapters/postgres/repo"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres"
 	"github.com/tinhtt/go-realworld/internal/endpoints"
 )
 
@@ -16,8 +16,8 @@ func main() {
 	db := adapters.ConnectDB()
 	defer adapters.CloseDB(db)
 
-	users := pgrepo.NewUsers(db)
-	articles := pgrepo.NewArticles(db)
+	users := postgres.NewUsers(db)
+	articles := postgres.NewArticles(db)
 	server := endpoints.NewHTTPServer(users, articles)
 
 	go func() {

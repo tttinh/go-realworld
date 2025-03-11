@@ -1,10 +1,10 @@
-package pgrepo
+package postgres
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres/sqlc"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
@@ -28,8 +28,8 @@ func (r *Articles) Add(ctx context.Context, a domain.Article) (domain.Article, e
 	return res, nil
 }
 
-func createArticleTx(q *gendb.Queries, ctx context.Context, a domain.Article) (domain.Article, error) {
-	param := gendb.InsertArticleParams{
+func createArticleTx(q *sqlc.Queries, ctx context.Context, a domain.Article) (domain.Article, error) {
+	param := sqlc.InsertArticleParams{
 		AuthorID:    int64(a.AuthorID),
 		Slug:        a.Slug,
 		Title:       a.Title,
@@ -50,7 +50,7 @@ func createArticleTx(q *gendb.Queries, ctx context.Context, a domain.Article) (d
 			return domain.Article{}, fmt.Errorf("insert tag: %w", err)
 		}
 
-		err = q.InsertArticleTag(ctx, gendb.InsertArticleTagParams{
+		err = q.InsertArticleTag(ctx, sqlc.InsertArticleTagParams{
 			ArticleID: dbArticle.ID,
 			TagID:     tagID,
 		})

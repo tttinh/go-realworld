@@ -1,9 +1,9 @@
-package pgrepo
+package postgres
 
 import (
 	"context"
 
-	"github.com/tinhtt/go-realworld/internal/adapters/postgres/gendb"
+	"github.com/tinhtt/go-realworld/internal/adapters/postgres/sqlc"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
@@ -42,7 +42,7 @@ func (r *Articles) GetComment(ctx context.Context, id int) (domain.Comment, erro
 }
 
 func (r *Articles) AddComment(ctx context.Context, c domain.Comment) (domain.Comment, error) {
-	row, err := r.InsertComment(ctx, gendb.InsertCommentParams{
+	row, err := r.InsertComment(ctx, sqlc.InsertCommentParams{
 		ArticleID: int64(c.ArticleID),
 		AuthorID:  int64(c.AuthorID),
 		Body:      c.Body,
