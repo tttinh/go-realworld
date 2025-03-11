@@ -25,6 +25,9 @@ type ArticleRepo interface {
 	RemoveFavorite(ctx context.Context, userID int, articleID int) error
 
 	AddComment(ctx context.Context, c Comment) (Comment, error)
+	GetComment(ctx context.Context, id int) (Comment, error)
 	RemoveComment(ctx context.Context, id int) error
 	GetAllComments(ctx context.Context, id int) ([]Comment, error)
+
+	GetAllTags(ctx context.Context) ([]string, error)
 }

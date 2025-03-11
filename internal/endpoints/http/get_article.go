@@ -7,9 +7,9 @@ import (
 )
 
 func (h *Handler) getArticle(c *gin.Context) {
-	viewerID := 1
+	userID := 1
 	slug := c.Param("slug")
-	a, err := h.articles.GetDetail(c, viewerID, slug)
+	a, err := h.articles.GetDetail(c, userID, slug)
 	if err != nil {
 		abort(c, err)
 		return

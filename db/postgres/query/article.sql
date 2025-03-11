@@ -14,7 +14,7 @@ INSERT INTO articles (
 )
 RETURNING *;
 
--- name: GetArticleDetail :one
+-- name: FetchArticleDetail :one
 WITH article_cte AS (
     SELECT *
     FROM articles
@@ -74,7 +74,7 @@ SET slug = coalesce(sqlc.narg('slug'), slug),
 WHERE id = sqlc.arg('id') AND author_id = sqlc.arg('author_id')
 RETURNING *;
 
--- name: GetArticleBySlug :one
+-- name: FetchArticleBySlug :one
 SELECT *
 FROM articles
 WHERE slug=$1;
@@ -96,6 +96,10 @@ INSERT INTO favorites (
 DELETE FROM favorites
 WHERE user_id=$1 AND article_id=$2;
 
+-- name: FetchAllTags :one
+SELECT array_agg(t.name)::text[]
+FROM tags t;
+
 -- name: InsertTag :one
 INSERT INTO tags (
     name
@@ -115,3 +119,35 @@ INSERT INTO article_tags (
     $1,
     $2
 );
+
+-- name: FetchCommentByID :one
+SELECT *
+FROM comments
+WHERE id=$1;
+
+-- name: FetchAllComments :many
+SELECT *
+FROM comments
+WHERE article_id=$1;
+
+-- name: InsertComment :one
+INSERT INTO comments (
+    article_id,
+    author_id,
+    body
+) VALUES (
+    $1,
+    $2,
+    $3
+)
+RETURNING *;
+
+-- name: UpdateComment :one
+UPDATE comments
+SET body=$2
+WHERE id=$1
+RETURNING *;
+
+-- name: DeleteComment :exec
+DELETE FROM comments
+WHERE id=$1;

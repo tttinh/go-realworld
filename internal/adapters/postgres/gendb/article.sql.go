@@ -21,6 +21,16 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteComment = `-- name: DeleteComment :exec
+DELETE FROM comments
+WHERE id=$1
+`
+
+func (q *Queries) DeleteComment(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteComment, id)
+	return err
+}
+
 const deleteFavorite = `-- name: DeleteFavorite :exec
 DELETE FROM favorites
 WHERE user_id=$1 AND article_id=$2
@@ -36,14 +46,59 @@ func (q *Queries) DeleteFavorite(ctx context.Context, arg DeleteFavoriteParams) 
 	return err
 }
 
-const getArticleBySlug = `-- name: GetArticleBySlug :one
+const fetchAllComments = `-- name: FetchAllComments :many
+SELECT id, body, author_id, article_id, created_at, updated_at
+FROM comments
+WHERE article_id=$1
+`
+
+func (q *Queries) FetchAllComments(ctx context.Context, articleID int64) ([]Comment, error) {
+	rows, err := q.db.Query(ctx, fetchAllComments, articleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.ID,
+			&i.Body,
+			&i.AuthorID,
+			&i.ArticleID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchAllTags = `-- name: FetchAllTags :one
+SELECT array_agg(t.name)::text[]
+FROM tags t
+`
+
+func (q *Queries) FetchAllTags(ctx context.Context) ([]string, error) {
+	row := q.db.QueryRow(ctx, fetchAllTags)
+	var column_1 []string
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const fetchArticleBySlug = `-- name: FetchArticleBySlug :one
 SELECT id, author_id, slug, title, description, body, created_at, updated_at
 FROM articles
 WHERE slug=$1
 `
 
-func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (Article, error) {
-	row := q.db.QueryRow(ctx, getArticleBySlug, slug)
+func (q *Queries) FetchArticleBySlug(ctx context.Context, slug string) (Article, error) {
+	row := q.db.QueryRow(ctx, fetchArticleBySlug, slug)
 	var i Article
 	err := row.Scan(
 		&i.ID,
@@ -58,7 +113,7 @@ func (q *Queries) GetArticleBySlug(ctx context.Context, slug string) (Article, e
 	return i, err
 }
 
-const getArticleDetail = `-- name: GetArticleDetail :one
+const fetchArticleDetail = `-- name: FetchArticleDetail :one
 WITH article_cte AS (
     SELECT id, author_id, slug, title, description, body, created_at, updated_at
     FROM articles
@@ -109,12 +164,12 @@ SELECT
 FROM article_cte AS a, author_cte as author, favorite_cte as f, tag_cte as t
 `
 
-type GetArticleDetailParams struct {
+type FetchArticleDetailParams struct {
 	ViewerID int64
 	Slug     string
 }
 
-type GetArticleDetailRow struct {
+type FetchArticleDetailRow struct {
 	ID             int64
 	Slug           string
 	Title          string
@@ -132,9 +187,9 @@ type GetArticleDetailRow struct {
 	Image          pgtype.Text
 }
 
-func (q *Queries) GetArticleDetail(ctx context.Context, arg GetArticleDetailParams) (GetArticleDetailRow, error) {
-	row := q.db.QueryRow(ctx, getArticleDetail, arg.ViewerID, arg.Slug)
-	var i GetArticleDetailRow
+func (q *Queries) FetchArticleDetail(ctx context.Context, arg FetchArticleDetailParams) (FetchArticleDetailRow, error) {
+	row := q.db.QueryRow(ctx, fetchArticleDetail, arg.ViewerID, arg.Slug)
+	var i FetchArticleDetailRow
 	err := row.Scan(
 		&i.ID,
 		&i.Slug,
@@ -151,6 +206,26 @@ func (q *Queries) GetArticleDetail(ctx context.Context, arg GetArticleDetailPara
 		&i.Username,
 		&i.Bio,
 		&i.Image,
+	)
+	return i, err
+}
+
+const fetchCommentByID = `-- name: FetchCommentByID :one
+SELECT id, body, author_id, article_id, created_at, updated_at
+FROM comments
+WHERE id=$1
+`
+
+func (q *Queries) FetchCommentByID(ctx context.Context, id int64) (Comment, error) {
+	row := q.db.QueryRow(ctx, fetchCommentByID, id)
+	var i Comment
+	err := row.Scan(
+		&i.ID,
+		&i.Body,
+		&i.AuthorID,
+		&i.ArticleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -220,6 +295,39 @@ type InsertArticleTagParams struct {
 func (q *Queries) InsertArticleTag(ctx context.Context, arg InsertArticleTagParams) error {
 	_, err := q.db.Exec(ctx, insertArticleTag, arg.ArticleID, arg.TagID)
 	return err
+}
+
+const insertComment = `-- name: InsertComment :one
+INSERT INTO comments (
+    article_id,
+    author_id,
+    body
+) VALUES (
+    $1,
+    $2,
+    $3
+)
+RETURNING id, body, author_id, article_id, created_at, updated_at
+`
+
+type InsertCommentParams struct {
+	ArticleID int64
+	AuthorID  int64
+	Body      string
+}
+
+func (q *Queries) InsertComment(ctx context.Context, arg InsertCommentParams) (Comment, error) {
+	row := q.db.QueryRow(ctx, insertComment, arg.ArticleID, arg.AuthorID, arg.Body)
+	var i Comment
+	err := row.Scan(
+		&i.ID,
+		&i.Body,
+		&i.AuthorID,
+		&i.ArticleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const insertFavorite = `-- name: InsertFavorite :exec
@@ -298,6 +406,32 @@ func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (A
 		&i.Title,
 		&i.Description,
 		&i.Body,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateComment = `-- name: UpdateComment :one
+UPDATE comments
+SET body=$2
+WHERE id=$1
+RETURNING id, body, author_id, article_id, created_at, updated_at
+`
+
+type UpdateCommentParams struct {
+	ID   int64
+	Body string
+}
+
+func (q *Queries) UpdateComment(ctx context.Context, arg UpdateCommentParams) (Comment, error) {
+	row := q.db.QueryRow(ctx, updateComment, arg.ID, arg.Body)
+	var i Comment
+	err := row.Scan(
+		&i.ID,
+		&i.Body,
+		&i.AuthorID,
+		&i.ArticleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

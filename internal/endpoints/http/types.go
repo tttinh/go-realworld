@@ -74,21 +74,6 @@ func (res *commentRes) fromEntity(c domain.Comment) {
 	res.UpdatedAt = c.UpdatedAt
 }
 
-type batchCommentsRes struct {
-	Comments []commentRes `json:"comments"`
-}
-
-func (res *batchCommentsRes) fromEntity(comments []domain.Comment) {
-	for _, c := range comments {
-		res.Comments = append(res.Comments, commentRes{
-			ID:        c.ID,
-			Body:      c.Body,
-			CreatedAt: c.CreatedAt,
-			UpdatedAt: c.UpdatedAt,
-		})
-	}
-}
-
 type userRes struct {
 	User struct {
 		Name  string `json:"username"`

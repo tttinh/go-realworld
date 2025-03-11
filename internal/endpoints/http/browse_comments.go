@@ -4,7 +4,23 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinhtt/go-realworld/internal/domain"
 )
+
+type batchCommentsRes struct {
+	Comments []commentRes `json:"comments"`
+}
+
+func (res *batchCommentsRes) fromEntity(comments []domain.Comment) {
+	for _, c := range comments {
+		res.Comments = append(res.Comments, commentRes{
+			ID:        c.ID,
+			Body:      c.Body,
+			CreatedAt: c.CreatedAt,
+			UpdatedAt: c.UpdatedAt,
+		})
+	}
+}
 
 func (h *Handler) browseComments(c *gin.Context) {
 	slug := c.Param("slug")

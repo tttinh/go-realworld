@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) deleteArticle(c *gin.Context) {
-	authorID, _ := h.jwt.GetUserID(c)
+	userID, _ := h.jwt.GetUserID(c)
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
@@ -16,7 +16,7 @@ func (h *Handler) deleteArticle(c *gin.Context) {
 		return
 	}
 
-	if authorID != a.AuthorID {
+	if userID != a.AuthorID {
 		c.AbortWithError(http.StatusForbidden, domain.ErrForbidden)
 		return
 	}

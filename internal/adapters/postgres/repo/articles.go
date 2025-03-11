@@ -22,7 +22,7 @@ func NewArticles(db *pgx.Conn) *Articles {
 }
 
 func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (domain.ArticleDetail, error) {
-	row, err := r.GetArticleDetail(ctx, gendb.GetArticleDetailParams{
+	row, err := r.FetchArticleDetail(ctx, gendb.FetchArticleDetailParams{
 		Slug:     slug,
 		ViewerID: int64(viewerID),
 	})
@@ -53,7 +53,7 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 }
 
 func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
-	row, err := r.GetArticleBySlug(ctx, slug)
+	row, err := r.FetchArticleBySlug(ctx, slug)
 	if err != nil {
 		return domain.Article{}, err
 	}
@@ -112,4 +112,8 @@ func (r *Articles) RemoveFavorite(ctx context.Context, userID int, articleID int
 		UserID:    int64(userID),
 		ArticleID: int64(articleID),
 	})
+}
+
+func (r *Articles) GetAllTags(ctx context.Context) ([]string, error) {
+	return r.FetchAllTags(ctx)
 }

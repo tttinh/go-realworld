@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) favoriteArticle(c *gin.Context) {
-	authorID, _ := h.jwt.GetUserID(c)
+	userID, _ := h.jwt.GetUserID(c)
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
@@ -15,12 +15,12 @@ func (h *Handler) favoriteArticle(c *gin.Context) {
 		return
 	}
 
-	if err := h.articles.AddFavorite(c, authorID, a.ID); err != nil {
+	if err := h.articles.AddFavorite(c, userID, a.ID); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	detail, err := h.articles.GetDetail(c, authorID, a.Slug)
+	detail, err := h.articles.GetDetail(c, userID, a.Slug)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

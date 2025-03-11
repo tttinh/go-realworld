@@ -17,7 +17,7 @@ type updateArticleReq struct {
 }
 
 func (h *Handler) updateArticle(c *gin.Context) {
-	authorID, _ := h.jwt.GetUserID(c)
+	userID, _ := h.jwt.GetUserID(c)
 	var req updateArticleReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -31,7 +31,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 		return
 	}
 
-	if authorID != a.AuthorID {
+	if userID != a.AuthorID {
 		c.AbortWithError(http.StatusForbidden, domain.ErrForbidden)
 		return
 	}
@@ -66,7 +66,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 		return
 	}
 
-	detail, err := h.articles.GetDetail(c, authorID, slug)
+	detail, err := h.articles.GetDetail(c, userID, slug)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
