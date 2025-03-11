@@ -46,3 +46,8 @@ migrate-up:
 migrate-down:
 	migrate -path $(POSTGRES_MIGRATION) -database $(POSTGRES_URI) down -all
 .PHONY: migrate-down
+
+# Run API test.
+api-test:
+	./scripts/api-tests.sh
+.PHONY: api-test
