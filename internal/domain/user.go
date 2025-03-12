@@ -8,6 +8,14 @@ type Profile struct {
 	Following bool
 }
 
+type Author struct {
+	ID        int
+	Name      string
+	Bio       string
+	Image     string
+	Following bool
+}
+
 type User struct {
 	ID       int
 	Name     string

@@ -24,10 +24,10 @@ type ArticleRepo interface {
 	AddFavorite(ctx context.Context, userID int, articleID int) error
 	RemoveFavorite(ctx context.Context, userID int, articleID int) error
 
+	GetAllComments(ctx context.Context, viewerID int, articleID int) ([]Comment, error)
+	GetComment(ctx context.Context, viewerID int, commentID int) (Comment, error)
 	AddComment(ctx context.Context, c Comment) (Comment, error)
-	GetComment(ctx context.Context, id int) (Comment, error)
 	RemoveComment(ctx context.Context, id int) error
-	GetAllComments(ctx context.Context, id int) ([]Comment, error)
 
 	GetAllTags(ctx context.Context) ([]string, error)
 }

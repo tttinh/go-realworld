@@ -5,8 +5,8 @@ import (
 )
 
 type Article struct {
+	Author      Author
 	ID          int
-	AuthorID    int
 	Slug        string
 	Title       string
 	Description string
@@ -18,12 +18,12 @@ type Article struct {
 
 func NewArticle(authorID int, title, description, body string, tags []string) Article {
 	return Article{
-		AuthorID:    authorID,
 		Slug:        makeSlug(title),
 		Title:       title,
 		Description: description,
 		Body:        body,
 		Tags:        tags,
+		Author:      Author{ID: authorID},
 	}
 }
 
@@ -52,16 +52,8 @@ func (a *Article) NewSlug() {
 	a.Slug = makeSlugWithRandomString(a.Title)
 }
 
-type Author struct {
-	Name      string
-	Bio       string
-	Image     string
-	Following bool
-}
-
 type ArticleDetail struct {
 	Article
 	Favorited      bool
 	FavoritesCount int
-	Author         Author
 }

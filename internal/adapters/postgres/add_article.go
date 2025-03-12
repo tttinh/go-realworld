@@ -30,7 +30,7 @@ func (r *Articles) Add(ctx context.Context, a domain.Article) (domain.Article, e
 
 func createArticleTx(q *sqlc.Queries, ctx context.Context, a domain.Article) (domain.Article, error) {
 	param := sqlc.InsertArticleParams{
-		AuthorID:    int64(a.AuthorID),
+		AuthorID:    int64(a.Author.ID),
 		Slug:        a.Slug,
 		Title:       a.Title,
 		Description: a.Description,
@@ -61,7 +61,6 @@ func createArticleTx(q *sqlc.Queries, ctx context.Context, a domain.Article) (do
 
 	return domain.Article{
 		ID:          int(dbArticle.ID),
-		AuthorID:    int(dbArticle.AuthorID),
 		Slug:        a.Slug,
 		Title:       a.Title,
 		Description: a.Description,
@@ -69,5 +68,6 @@ func createArticleTx(q *sqlc.Queries, ctx context.Context, a domain.Article) (do
 		Tags:        a.Tags,
 		CreatedAt:   dbArticle.CreatedAt.Time,
 		UpdatedAt:   dbArticle.UpdatedAt.Time,
+		Author:      domain.Author{ID: int(dbArticle.AuthorID)},
 	}, nil
 }

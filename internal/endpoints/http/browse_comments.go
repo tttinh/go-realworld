@@ -13,16 +13,14 @@ type batchCommentsRes struct {
 
 func (res *batchCommentsRes) fromEntity(comments []domain.Comment) {
 	for _, c := range comments {
-		res.Comments = append(res.Comments, commentRes{
-			ID:        c.ID,
-			Body:      c.Body,
-			CreatedAt: c.CreatedAt,
-			UpdatedAt: c.UpdatedAt,
-		})
+		var item commentRes
+		item.fromEntity(c)
+		res.Comments = append(res.Comments, item)
 	}
 }
 
 func (h *Handler) browseComments(c *gin.Context) {
+	userID, _ := h.jwt.GetUserID(c)
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
@@ -30,7 +28,7 @@ func (h *Handler) browseComments(c *gin.Context) {
 		return
 	}
 
-	comments, err := h.articles.GetAllComments(c, a.ID)
+	comments, err := h.articles.GetAllComments(c, userID, a.ID)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

@@ -55,23 +55,29 @@ func (res *articleRes) fromEntity(a domain.ArticleDetail) {
 }
 
 type commentRes struct {
-	ID        int       `json:"id"`
-	Body      string    `json:"body"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Author    struct {
-		Username  string `json:"username"`
-		Bio       string `json:"bio"`
-		Image     string `json:"image"`
-		Following bool   `json:"following"`
-	} `json:"author"`
+	Comment struct {
+		ID        int       `json:"id"`
+		Body      string    `json:"body"`
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updatedAt"`
+		Author    struct {
+			Name      string `json:"username"`
+			Bio       string `json:"bio"`
+			Image     string `json:"image"`
+			Following bool   `json:"following"`
+		} `json:"author"`
+	} `json:"comment"`
 }
 
 func (res *commentRes) fromEntity(c domain.Comment) {
-	res.ID = c.ID
-	res.Body = c.Body
-	res.CreatedAt = c.CreatedAt
-	res.UpdatedAt = c.UpdatedAt
+	res.Comment.ID = c.ID
+	res.Comment.Body = c.Body
+	res.Comment.CreatedAt = c.CreatedAt
+	res.Comment.UpdatedAt = c.UpdatedAt
+	res.Comment.Author.Name = c.Author.Name
+	res.Comment.Author.Bio = c.Author.Bio
+	res.Comment.Author.Image = c.Author.Image
+	res.Comment.Author.Following = c.Author.Following
 }
 
 type userRes struct {

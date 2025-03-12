@@ -16,7 +16,7 @@ func (h *Handler) deleteArticle(c *gin.Context) {
 		return
 	}
 
-	if userID != a.AuthorID {
+	if userID != a.Author.ID {
 		c.AbortWithError(http.StatusForbidden, domain.ErrForbidden)
 		return
 	}

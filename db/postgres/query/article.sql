@@ -121,14 +121,46 @@ INSERT INTO article_tags (
 );
 
 -- name: FetchCommentByID :one
-SELECT *
-FROM comments
-WHERE id=$1;
+SELECT
+    c.id,
+    c.body,
+    c.article_id,
+    c.created_at,
+    c.updated_at,
+    u.id::bigint AS author_id,
+    u.username AS author_name,
+    u.bio AS author_bio,
+    u.image AS author_image,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = c.author_id
+        AND follows.follower_id = sqlc.arg('viewer_id')
+    ) THEN true ELSE false
+    END AS following
+FROM comments c
+LEFT JOIN users u ON c.author_id=u.id
+WHERE c.id=$1;
 
 -- name: FetchAllComments :many
-SELECT *
-FROM comments
-WHERE article_id=$1;
+SELECT
+    c.id,
+    c.body,
+    c.article_id,
+    c.created_at,
+    c.updated_at,
+    u.id::bigint AS author_id,
+    u.username AS author_name,
+    u.bio AS author_bio,
+    u.image AS author_image,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = c.author_id
+        AND follows.follower_id = sqlc.arg('viewer_id')
+    ) THEN true ELSE false
+    END AS following
+FROM comments c
+LEFT JOIN users u ON c.author_id=u.id
+WHERE c.article_id=$1;
 
 -- name: InsertComment :one
 INSERT INTO comments (

@@ -3,8 +3,8 @@ package domain
 import "time"
 
 type Comment struct {
+	Author    Author
 	ID        int
-	AuthorID  int
 	ArticleID int
 	Body      string
 	CreatedAt time.Time

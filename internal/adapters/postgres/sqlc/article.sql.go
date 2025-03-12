@@ -47,27 +47,65 @@ func (q *Queries) DeleteFavorite(ctx context.Context, arg DeleteFavoriteParams) 
 }
 
 const fetchAllComments = `-- name: FetchAllComments :many
-SELECT id, body, author_id, article_id, created_at, updated_at
-FROM comments
-WHERE article_id=$1
+SELECT
+    c.id,
+    c.body,
+    c.article_id,
+    c.created_at,
+    c.updated_at,
+    u.id::bigint AS author_id,
+    u.username AS author_name,
+    u.bio AS author_bio,
+    u.image AS author_image,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = c.author_id
+        AND follows.follower_id = $2
+    ) THEN true ELSE false
+    END AS following
+FROM comments c
+LEFT JOIN users u ON c.author_id=u.id
+WHERE c.article_id=$1
 `
 
-func (q *Queries) FetchAllComments(ctx context.Context, articleID int64) ([]Comment, error) {
-	rows, err := q.db.Query(ctx, fetchAllComments, articleID)
+type FetchAllCommentsParams struct {
+	ArticleID int64
+	ViewerID  int64
+}
+
+type FetchAllCommentsRow struct {
+	ID          int64
+	Body        string
+	ArticleID   int64
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	AuthorID    int64
+	AuthorName  pgtype.Text
+	AuthorBio   pgtype.Text
+	AuthorImage pgtype.Text
+	Following   bool
+}
+
+func (q *Queries) FetchAllComments(ctx context.Context, arg FetchAllCommentsParams) ([]FetchAllCommentsRow, error) {
+	rows, err := q.db.Query(ctx, fetchAllComments, arg.ArticleID, arg.ViewerID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Comment
+	var items []FetchAllCommentsRow
 	for rows.Next() {
-		var i Comment
+		var i FetchAllCommentsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Body,
-			&i.AuthorID,
 			&i.ArticleID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.AuthorID,
+			&i.AuthorName,
+			&i.AuthorBio,
+			&i.AuthorImage,
+			&i.Following,
 		); err != nil {
 			return nil, err
 		}
@@ -211,21 +249,59 @@ func (q *Queries) FetchArticleDetail(ctx context.Context, arg FetchArticleDetail
 }
 
 const fetchCommentByID = `-- name: FetchCommentByID :one
-SELECT id, body, author_id, article_id, created_at, updated_at
-FROM comments
-WHERE id=$1
+SELECT
+    c.id,
+    c.body,
+    c.article_id,
+    c.created_at,
+    c.updated_at,
+    u.id::bigint AS author_id,
+    u.username AS author_name,
+    u.bio AS author_bio,
+    u.image AS author_image,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM follows
+        WHERE follows.following_id = c.author_id
+        AND follows.follower_id = $2
+    ) THEN true ELSE false
+    END AS following
+FROM comments c
+LEFT JOIN users u ON c.author_id=u.id
+WHERE c.id=$1
 `
 
-func (q *Queries) FetchCommentByID(ctx context.Context, id int64) (Comment, error) {
-	row := q.db.QueryRow(ctx, fetchCommentByID, id)
-	var i Comment
+type FetchCommentByIDParams struct {
+	ID       int64
+	ViewerID int64
+}
+
+type FetchCommentByIDRow struct {
+	ID          int64
+	Body        string
+	ArticleID   int64
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	AuthorID    int64
+	AuthorName  pgtype.Text
+	AuthorBio   pgtype.Text
+	AuthorImage pgtype.Text
+	Following   bool
+}
+
+func (q *Queries) FetchCommentByID(ctx context.Context, arg FetchCommentByIDParams) (FetchCommentByIDRow, error) {
+	row := q.db.QueryRow(ctx, fetchCommentByID, arg.ID, arg.ViewerID)
+	var i FetchCommentByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Body,
-		&i.AuthorID,
 		&i.ArticleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AuthorID,
+		&i.AuthorName,
+		&i.AuthorBio,
+		&i.AuthorImage,
+		&i.Following,
 	)
 	return i, err
 }

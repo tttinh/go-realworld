@@ -29,7 +29,7 @@ func (h *Handler) createComment(c *gin.Context) {
 	}
 
 	comment := domain.Comment{
-		AuthorID:  userID,
+		Author:    domain.Author{ID: userID},
 		ArticleID: a.ID,
 		Body:      req.Comment.Body,
 	}

@@ -40,15 +40,16 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 			Tags:        row.Tags,
 			CreatedAt:   row.CreatedAt.Time,
 			UpdatedAt:   row.UpdatedAt.Time,
+			Author: domain.Author{
+				ID:        int(row.AuthorID),
+				Name:      row.Username,
+				Bio:       row.Bio.String,
+				Image:     row.Image.String,
+				Following: row.Following,
+			},
 		},
 		Favorited:      row.Favorited,
 		FavoritesCount: int(row.FavoritesCount),
-		Author: domain.Author{
-			Name:      row.Username,
-			Bio:       row.Bio.String,
-			Image:     row.Image.String,
-			Following: row.Following,
-		},
 	}, nil
 }
 
@@ -60,20 +61,22 @@ func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error)
 
 	return domain.Article{
 		ID:          int(row.ID),
-		AuthorID:    int(row.AuthorID),
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,
 		Body:        row.Body,
 		CreatedAt:   row.CreatedAt.Time,
 		UpdatedAt:   row.UpdatedAt.Time,
+		Author: domain.Author{
+			ID: int(row.AuthorID),
+		},
 	}, nil
 }
 
 func (r *Articles) Edit(ctx context.Context, a domain.Article) (domain.Article, error) {
 	param := sqlc.UpdateArticleParams{
 		ID:          int64(a.ID),
-		AuthorID:    int64(a.AuthorID),
+		AuthorID:    int64(a.Author.ID),
 		Slug:        pgtype.Text{String: a.Slug, Valid: len(a.Slug) > 0},
 		Title:       pgtype.Text{String: a.Title, Valid: len(a.Title) > 0},
 		Description: pgtype.Text{String: a.Description, Valid: len(a.Description) > 0},
@@ -86,13 +89,15 @@ func (r *Articles) Edit(ctx context.Context, a domain.Article) (domain.Article, 
 
 	return domain.Article{
 		ID:          int(row.ID),
-		AuthorID:    int(row.AuthorID),
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,
 		Body:        row.Body,
 		CreatedAt:   row.CreatedAt.Time,
 		UpdatedAt:   row.UpdatedAt.Time,
+		Author: domain.Author{
+			ID: int(row.AuthorID),
+		},
 	}, nil
 }
 
