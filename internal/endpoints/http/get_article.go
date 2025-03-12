@@ -31,7 +31,6 @@ func (res *articleData) fromEntity(a domain.ArticleDetail) {
 	res.Title = a.Title
 	res.Description = a.Description
 	res.Body = a.Body
-	res.Tags = a.Tags
 	res.CreatedAt = a.CreatedAt
 	res.UpdatedAt = a.UpdatedAt
 	res.Favorited = a.Favorited
@@ -40,6 +39,11 @@ func (res *articleData) fromEntity(a domain.ArticleDetail) {
 	res.Author.Bio = a.Author.Bio
 	res.Author.Image = a.Author.Image
 	res.Author.Following = a.Author.Following
+
+	res.Tags = []string{}
+	if len(a.Tags) > 0 {
+		res.Tags = a.Tags
+	}
 }
 
 type articleRes struct {
