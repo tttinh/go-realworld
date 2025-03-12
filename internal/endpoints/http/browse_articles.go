@@ -38,22 +38,19 @@ func (h *Handler) browseArticles(c *gin.Context) {
 	}
 
 	userID, _ := h.jwt.GetUserID(c)
-	// if q.Author != nil {
-	// 	h.browseArticlesByAuthor(c, userID, q)
-	// 	return
-	// }
+	var articles []domain.ArticleDetail
+	var err error
+	switch {
+	case q.Author != nil:
+		articles, err = h.articles.GetAllArticlesByAuthor(c, userID, q.Offset, q.Limit, *q.Author)
+	case q.Favorited != nil:
+		articles, err = h.articles.GetAllArticlesByFavorited(c, userID, q.Offset, q.Limit, *q.Favorited)
+	case q.Tag != nil:
+		articles, err = h.articles.GetAllArticlesByTag(c, userID, q.Offset, q.Limit, *q.Tag)
+	default:
+		articles, err = h.articles.GetAllArticles(c, userID, q.Offset, q.Limit)
+	}
 
-	// if q.Favorited != nil {
-	// 	h.browseArticlesByFavorited(c, userID, q)
-	// 	return
-	// }
-
-	// if q.Tag != nil {
-	// 	h.browseArticlesByTag(c, userID, q)
-	// 	return
-	// }
-
-	articles, err := h.articles.GetAllArticles(c, userID, q.Offset, q.Limit)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -62,16 +59,4 @@ func (h *Handler) browseArticles(c *gin.Context) {
 	var res batchArticleRes
 	res.fromEntity(articles, 10)
 	c.JSON(http.StatusOK, res)
-}
-
-func (h *Handler) browseArticlesByTag(c *gin.Context, userID int, q articleQueries) {
-	panic("unimplemented")
-}
-
-func (h *Handler) browseArticlesByFavorited(c *gin.Context, userID int, q articleQueries) {
-	panic("unimplemented")
-}
-
-func (h *Handler) browseArticlesByAuthor(c *gin.Context, userID int, q articleQueries) {
-	panic("unimplemented")
 }

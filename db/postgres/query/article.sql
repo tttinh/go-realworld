@@ -188,13 +188,13 @@ WHERE id=$1;
 WITH article_cte AS (
     SELECT
         a.id,
+        a.author_id,
         a.slug,
         a.title,
         a.body,
         a.description,
         a.created_at,
         a.updated_at,
-        u.id::bigint AS author_id,
         u.username AS author_name,
         u.bio AS author_bio,
         u.image AS author_image
@@ -233,6 +233,205 @@ SELECT
         SELECT 1
         FROM follows
         WHERE a.author_id = follows.following_id AND follows.follower_id=$3
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC;
+
+-- name: FetchAllArticlesByAuthor :many
+WITH author_cte AS (
+    SELECT
+        u.id,
+        u.username,
+        u.bio,
+        u.image
+    FROM
+        users u
+    WHERE
+        u.username=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at
+    FROM articles a
+    WHERE a.author_id=(SELECT id FROM author_cte LIMIT 1)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.*,
+    auth.username AS author_name,
+    auth.bio AS author_bio,
+    auth.image AS author_image,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN author_cte auth ON auth.id=a.author_id
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC;
+
+-- name: FetchAllArticlesByFavorited :many
+WITH user_cte AS (
+    SELECT
+        u.id,
+        f.article_id
+    FROM
+        users u
+    LEFT JOIN favorites f ON u.id=f.user_id
+    WHERE
+        u.username=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.id=ANY(SELECT article_id FROM user_cte)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.*,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC;
+
+-- name: FetchAllArticlesByTag :many
+WITH article_tags_cte AS (
+    SELECT
+        atag.article_id,
+        atag.tag_id
+    FROM
+        article_tags atag
+    JOIN tags t ON t.id=atag.tag_id
+    WHERE
+        t.name=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.id=ANY(SELECT article_id FROM article_tags_cte)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.*,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
     ) THEN true ELSE false END AS following
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id

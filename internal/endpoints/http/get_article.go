@@ -2,6 +2,7 @@ package httpendpoints
 
 import (
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -42,6 +43,7 @@ func (res *articleData) fromEntity(a domain.ArticleDetail) {
 
 	res.Tags = []string{}
 	if len(a.Tags) > 0 {
+		slices.Sort(a.Tags)
 		res.Tags = a.Tags
 	}
 }

@@ -50,13 +50,13 @@ const fetchAllArticles = `-- name: FetchAllArticles :many
 WITH article_cte AS (
     SELECT
         a.id,
+        a.author_id,
         a.slug,
         a.title,
         a.body,
         a.description,
         a.created_at,
         a.updated_at,
-        u.id::bigint AS author_id,
         u.username AS author_name,
         u.bio AS author_bio,
         u.image AS author_image
@@ -83,7 +83,7 @@ favorite_cte AS (
     GROUP BY f.article_id
 )
 SELECT
-    a.id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at, a.author_id, a.author_name, a.author_bio, a.author_image,
+    a.id, a.author_id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at, a.author_name, a.author_bio, a.author_image,
     t.names as tags,
     f.count as favorites_count,
     CASE WHEN EXISTS (
@@ -110,13 +110,13 @@ type FetchAllArticlesParams struct {
 
 type FetchAllArticlesRow struct {
 	ID             int64
+	AuthorID       int64
 	Slug           string
 	Title          string
 	Body           string
 	Description    string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
-	AuthorID       int64
 	AuthorName     string
 	AuthorBio      pgtype.Text
 	AuthorImage    pgtype.Text
@@ -137,13 +137,413 @@ func (q *Queries) FetchAllArticles(ctx context.Context, arg FetchAllArticlesPara
 		var i FetchAllArticlesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.AuthorID,
 			&i.Slug,
 			&i.Title,
 			&i.Body,
 			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.AuthorName,
+			&i.AuthorBio,
+			&i.AuthorImage,
+			&i.Tags,
+			&i.FavoritesCount,
+			&i.Favorited,
+			&i.Following,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchAllArticlesByAuthor = `-- name: FetchAllArticlesByAuthor :many
+WITH author_cte AS (
+    SELECT
+        u.id,
+        u.username,
+        u.bio,
+        u.image
+    FROM
+        users u
+    WHERE
+        u.username=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at
+    FROM articles a
+    WHERE a.author_id=(SELECT id FROM author_cte LIMIT 1)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.id, a.author_id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at,
+    auth.username AS author_name,
+    auth.bio AS author_bio,
+    auth.image AS author_image,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN author_cte auth ON auth.id=a.author_id
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC
+`
+
+type FetchAllArticlesByAuthorParams struct {
+	Username string
+	Limit    int32
+	Offset   int32
+	UserID   int64
+}
+
+type FetchAllArticlesByAuthorRow struct {
+	ID             int64
+	AuthorID       int64
+	Slug           string
+	Title          string
+	Body           string
+	Description    string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	AuthorName     pgtype.Text
+	AuthorBio      pgtype.Text
+	AuthorImage    pgtype.Text
+	Tags           []string
+	FavoritesCount pgtype.Int8
+	Favorited      bool
+	Following      bool
+}
+
+func (q *Queries) FetchAllArticlesByAuthor(ctx context.Context, arg FetchAllArticlesByAuthorParams) ([]FetchAllArticlesByAuthorRow, error) {
+	rows, err := q.db.Query(ctx, fetchAllArticlesByAuthor,
+		arg.Username,
+		arg.Limit,
+		arg.Offset,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FetchAllArticlesByAuthorRow
+	for rows.Next() {
+		var i FetchAllArticlesByAuthorRow
+		if err := rows.Scan(
+			&i.ID,
 			&i.AuthorID,
+			&i.Slug,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AuthorName,
+			&i.AuthorBio,
+			&i.AuthorImage,
+			&i.Tags,
+			&i.FavoritesCount,
+			&i.Favorited,
+			&i.Following,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchAllArticlesByFavorited = `-- name: FetchAllArticlesByFavorited :many
+WITH user_cte AS (
+    SELECT
+        u.id,
+        f.article_id
+    FROM
+        users u
+    LEFT JOIN favorites f ON u.id=f.user_id
+    WHERE
+        u.username=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.id=ANY(SELECT article_id FROM user_cte)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.id, a.author_id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at, a.author_name, a.author_bio, a.author_image,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC
+`
+
+type FetchAllArticlesByFavoritedParams struct {
+	Username string
+	Limit    int32
+	Offset   int32
+	UserID   int64
+}
+
+type FetchAllArticlesByFavoritedRow struct {
+	ID             int64
+	AuthorID       int64
+	Slug           string
+	Title          string
+	Body           string
+	Description    string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	AuthorName     string
+	AuthorBio      pgtype.Text
+	AuthorImage    pgtype.Text
+	Tags           []string
+	FavoritesCount pgtype.Int8
+	Favorited      bool
+	Following      bool
+}
+
+func (q *Queries) FetchAllArticlesByFavorited(ctx context.Context, arg FetchAllArticlesByFavoritedParams) ([]FetchAllArticlesByFavoritedRow, error) {
+	rows, err := q.db.Query(ctx, fetchAllArticlesByFavorited,
+		arg.Username,
+		arg.Limit,
+		arg.Offset,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FetchAllArticlesByFavoritedRow
+	for rows.Next() {
+		var i FetchAllArticlesByFavoritedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.Slug,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AuthorName,
+			&i.AuthorBio,
+			&i.AuthorImage,
+			&i.Tags,
+			&i.FavoritesCount,
+			&i.Favorited,
+			&i.Following,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const fetchAllArticlesByTag = `-- name: FetchAllArticlesByTag :many
+WITH article_tags_cte AS (
+    SELECT
+        atag.article_id,
+        atag.tag_id
+    FROM
+        article_tags atag
+    JOIN tags t ON t.id=atag.tag_id
+    WHERE
+        t.name=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.id=ANY(SELECT article_id FROM article_tags_cte)
+    ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
+),
+tag_cte AS (
+    SELECT
+        atags.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM tags t
+    LEFT JOIN article_tags atags on atags.tag_id=t.id
+    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    GROUP BY atags.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*) AS count
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.id, a.author_id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at, a.author_name, a.author_bio, a.author_image,
+    t.names as tags,
+    f.count as favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM favorites
+        WHERE a.id = favorites.article_id AND favorites.user_id=$4
+    ) THEN true ELSE false END AS favorited,
+    CASE WHEN EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE a.author_id = follows.following_id AND follows.follower_id=$4
+    ) THEN true ELSE false END AS following
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.created_at DESC
+`
+
+type FetchAllArticlesByTagParams struct {
+	Name   string
+	Limit  int32
+	Offset int32
+	UserID int64
+}
+
+type FetchAllArticlesByTagRow struct {
+	ID             int64
+	AuthorID       int64
+	Slug           string
+	Title          string
+	Body           string
+	Description    string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	AuthorName     string
+	AuthorBio      pgtype.Text
+	AuthorImage    pgtype.Text
+	Tags           []string
+	FavoritesCount pgtype.Int8
+	Favorited      bool
+	Following      bool
+}
+
+func (q *Queries) FetchAllArticlesByTag(ctx context.Context, arg FetchAllArticlesByTagParams) ([]FetchAllArticlesByTagRow, error) {
+	rows, err := q.db.Query(ctx, fetchAllArticlesByTag,
+		arg.Name,
+		arg.Limit,
+		arg.Offset,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FetchAllArticlesByTagRow
+	for rows.Next() {
+		var i FetchAllArticlesByTagRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.Slug,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.AuthorName,
 			&i.AuthorBio,
 			&i.AuthorImage,
