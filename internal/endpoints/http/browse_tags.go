@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type batchTagsRes struct {
+type batchTagRes struct {
 	Tags []string `json:"tags"`
 }
 
@@ -17,5 +17,5 @@ func (h *Handler) browseTags(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, batchTagsRes{Tags: tags})
+	c.JSON(http.StatusOK, batchTagRes{Tags: tags})
 }

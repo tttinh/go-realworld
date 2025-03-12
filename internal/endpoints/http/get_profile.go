@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) getProfile(c *gin.Context) {
-	followerID := 1
+	followerID, _ := h.jwt.GetUserID(c)
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
 	if err != nil {

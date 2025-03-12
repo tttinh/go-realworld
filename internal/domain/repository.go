@@ -14,6 +14,37 @@ type UserRepo interface {
 }
 
 type ArticleRepo interface {
+	GetAllArticles(
+		ctx context.Context,
+		viewerID int,
+		offset int,
+		limit int,
+	) ([]ArticleDetail, error)
+
+	GetAllArticlesByAuthor(
+		ctx context.Context,
+		viewerID int,
+		offset int,
+		limit int,
+		author string,
+	) ([]ArticleDetail, error)
+
+	GetAllArticlesByFavorited(
+		ctx context.Context,
+		viewerID int,
+		offset int,
+		limit int,
+		favoritedUser string,
+	) ([]ArticleDetail, error)
+
+	GetAllArticlesByTag(
+		ctx context.Context,
+		viewerID int,
+		offset int,
+		limit int,
+		tag string,
+	) ([]ArticleDetail, error)
+
 	GetDetail(ctx context.Context, viewerID int, slug string) (ArticleDetail, error)
 
 	Get(ctx context.Context, slug string) (Article, error)

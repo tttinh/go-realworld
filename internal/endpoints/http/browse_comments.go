@@ -7,13 +7,13 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-type batchCommentsRes struct {
-	Comments []commentRes `json:"comments"`
+type batchCommentRes struct {
+	Comments []commentData `json:"comments"`
 }
 
-func (res *batchCommentsRes) fromEntity(comments []domain.Comment) {
+func (res *batchCommentRes) fromEntity(comments []domain.Comment) {
 	for _, c := range comments {
-		var item commentRes
+		var item commentData
 		item.fromEntity(c)
 		res.Comments = append(res.Comments, item)
 	}
@@ -34,7 +34,7 @@ func (h *Handler) browseComments(c *gin.Context) {
 		return
 	}
 
-	var res batchCommentsRes
+	var res batchCommentRes
 	res.fromEntity(comments)
 	c.JSON(http.StatusOK, res)
 }
