@@ -1,5 +1,7 @@
 # TODO
 
-- Create comment.
-- Article by favorited, tags, authors.
-- Get feed.
+- Metrics to Prometheus.
+- Tracing to Open Tracing.
+- Add Log.
+- Integration Test.
+- Unit Test.
