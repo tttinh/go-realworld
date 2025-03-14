@@ -38,10 +38,7 @@ func createArticleTx(q *sqlc.Queries, ctx context.Context, a domain.Article) (do
 	}
 	dbArticle, err := q.InsertArticle(ctx, param)
 	if err != nil {
-		if derr := toDomainError(err); derr != nil {
-			return domain.Article{}, derr
-		}
-		return domain.Article{}, err
+		return domain.Article{}, toDomainError(err)
 	}
 
 	for _, tag := range a.Tags {

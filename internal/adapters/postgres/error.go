@@ -21,5 +21,5 @@ func toDomainError(err error) error {
 		}
 	}
 
-	return nil
+	return err
 }

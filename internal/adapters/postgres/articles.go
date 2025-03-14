@@ -27,7 +27,7 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 		ViewerID: int64(viewerID),
 	})
 	if err != nil {
-		return domain.ArticleDetail{}, err
+		return domain.ArticleDetail{}, toDomainError(err)
 	}
 
 	return domain.ArticleDetail{
@@ -56,7 +56,7 @@ func (r *Articles) GetDetail(ctx context.Context, viewerID int, slug string) (do
 func (r *Articles) Get(ctx context.Context, slug string) (domain.Article, error) {
 	row, err := r.FetchArticleBySlug(ctx, slug)
 	if err != nil {
-		return domain.Article{}, err
+		return domain.Article{}, toDomainError(err)
 	}
 
 	return domain.Article{

@@ -19,16 +19,15 @@ func NewHandler(
 	articles domain.ArticleRepo,
 ) http.Handler {
 	jwt := NewJWT("ABC", 999*time.Hour)
-
 	h := Handler{
 		jwt:      jwt,
 		articles: articles,
 		users:    users,
 	}
 
-	router := gin.Default()
-	router.Use(ErrorMiddleware())
-	api := router.Group("/api")
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	api := router.Group("/api").Use(LogMiddleware(), ErrorMiddleware())
 
 	// public APIs
 	api.POST("/users/login", h.loginUser)
