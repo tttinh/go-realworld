@@ -184,6 +184,9 @@ RETURNING *;
 DELETE FROM comments
 WHERE id=$1;
 
+-- name: CountAllArticles :one
+SELECT COUNT(*) FROM articles;
+
 -- name: FetchAllArticles :many
 WITH article_cte AS (
     SELECT
@@ -200,7 +203,7 @@ WITH article_cte AS (
         u.image AS author_image
     FROM articles a
     JOIN users u ON a.author_id=u.id
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $1 OFFSET $2
 ),
 tag_cte AS (
@@ -209,13 +212,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    WHERE atags.article_id =  ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -237,7 +240,15 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC;
+ORDER BY a.updated_at DESC;
+
+-- name: CountArticlesByAuthor :one
+SELECT
+    COUNT(*)
+FROM
+    articles a
+JOIN users u ON a.author_id=u.id
+WHERE u.username=$1;
 
 -- name: FetchAllArticlesByAuthor :many
 WITH author_cte AS (
@@ -263,7 +274,7 @@ article_cte AS (
         a.updated_at
     FROM articles a
     WHERE a.author_id=(SELECT id FROM author_cte LIMIT 1)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -272,13 +283,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    WHERE atags.article_id =  ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -301,10 +312,18 @@ SELECT
         WHERE a.author_id = follows.following_id AND follows.follower_id=$4
     ) THEN true ELSE false END AS following
 FROM article_cte a
-LEFT JOIN author_cte auth ON auth.id=a.author_id
+JOIN author_cte auth ON auth.id=a.author_id
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC;
+ORDER BY a.updated_at DESC;
+
+-- name: CountArticlesByFavorited :one
+SELECT
+    COUNT(*)
+FROM
+    favorites f
+JOIN users u ON f.user_id=u.id
+WHERE u.username=$1;
 
 -- name: FetchAllArticlesByFavorited :many
 WITH user_cte AS (
@@ -333,7 +352,7 @@ article_cte AS (
     FROM articles a
     JOIN users u ON a.author_id=u.id
     WHERE a.id=ANY(SELECT article_id FROM user_cte)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -342,13 +361,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    WHERE atags.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -370,7 +389,15 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC;
+ORDER BY a.updated_at DESC;
+
+-- name: CountArticlesByTag :one
+SELECT
+    COUNT(*)
+FROM
+    article_tags atg
+JOIN tags t ON atg.tag_id=t.id
+WHERE t.name=$1;
 
 -- name: FetchAllArticlesByTag :many
 WITH article_tags_cte AS (
@@ -399,7 +426,7 @@ article_cte AS (
     FROM articles a
     JOIN users u ON a.author_id=u.id
     WHERE a.id=ANY(SELECT article_id FROM article_tags_cte)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -408,13 +435,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    WHERE atags.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -436,4 +463,72 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC;
+ORDER BY a.updated_at DESC;
+
+-- name: CountFeed :one
+WITH following_cte AS (
+    SELECT f.following_id AS id FROM follows f WHERE f.follower_id=$1
+)
+SELECT
+    COUNT(*)
+FROM
+    articles a
+WHERE a.author_id=ANY(
+    SELECT f.following_id
+    FROM follows f
+    WHERE f.follower_id=$1
+);
+
+-- name: FetchFeed :many
+WITH following_cte AS (
+    SELECT *
+    FROM follows
+    WHERE follower_id=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.author_id=ANY(SELECT f.following_id FROM following_cte f)
+    ORDER BY a.updated_at DESC
+    OFFSET $2 LIMIT $3
+),
+tag_cte AS (
+    SELECT
+        atg.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM article_tags atg
+    JOIN tags t ON atg.tag_id=t.id
+    WHERE atg.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY atg.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*)
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.*,
+    t.names AS tags,
+    f.count AS favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM favorites f WHERE f.user_id=$1 AND f.article_id=a.id
+    ) THEN true ELSE false END AS favorited
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.updated_at DESC;

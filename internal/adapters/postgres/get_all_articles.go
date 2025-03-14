@@ -12,19 +12,29 @@ func (r *Articles) GetAllArticles(
 	viewerID int,
 	offset int,
 	limit int,
-) ([]domain.ArticleDetail, error) {
-	results := []domain.ArticleDetail{}
+) (domain.ArticleList, error) {
+	al := domain.ArticleList{
+		Total:    0,
+		Articles: []domain.ArticleDetail{},
+	}
+
+	count, err := r.CountAllArticles(ctx)
+	if err != nil {
+		return al, err
+	}
+	al.Total = int(count)
+
 	rows, err := r.FetchAllArticles(ctx, sqlc.FetchAllArticlesParams{
 		Limit:  int32(limit),
 		Offset: int32(offset),
 		UserID: int64(viewerID),
 	})
 	if err != nil {
-		return results, err
+		return al, err
 	}
 
 	for _, r := range rows {
-		results = append(results, domain.ArticleDetail{
+		al.Articles = append(al.Articles, domain.ArticleDetail{
 			Article: domain.Article{
 				ID:          int(r.ID),
 				Slug:        r.Slug,
@@ -46,7 +56,7 @@ func (r *Articles) GetAllArticles(
 			FavoritesCount: int(r.FavoritesCount.Int64),
 		})
 	}
-	return results, nil
+	return al, nil
 }
 
 func (r *Articles) GetAllArticlesByAuthor(
@@ -55,8 +65,18 @@ func (r *Articles) GetAllArticlesByAuthor(
 	offset int,
 	limit int,
 	author string,
-) ([]domain.ArticleDetail, error) {
-	results := []domain.ArticleDetail{}
+) (domain.ArticleList, error) {
+	al := domain.ArticleList{
+		Total:    0,
+		Articles: []domain.ArticleDetail{},
+	}
+
+	count, err := r.CountArticlesByAuthor(ctx, author)
+	if err != nil {
+		return al, err
+	}
+	al.Total = int(count)
+
 	rows, err := r.FetchAllArticlesByAuthor(ctx, sqlc.FetchAllArticlesByAuthorParams{
 		Username: author,
 		Limit:    int32(limit),
@@ -64,11 +84,11 @@ func (r *Articles) GetAllArticlesByAuthor(
 		UserID:   int64(viewerID),
 	})
 	if err != nil {
-		return results, err
+		return al, err
 	}
 
 	for _, r := range rows {
-		results = append(results, domain.ArticleDetail{
+		al.Articles = append(al.Articles, domain.ArticleDetail{
 			Article: domain.Article{
 				ID:          int(r.ID),
 				Slug:        r.Slug,
@@ -80,7 +100,7 @@ func (r *Articles) GetAllArticlesByAuthor(
 				UpdatedAt:   r.UpdatedAt.Time,
 				Author: domain.Author{
 					ID:        int(r.AuthorID),
-					Name:      r.AuthorName.String,
+					Name:      r.AuthorName,
 					Bio:       r.AuthorBio.String,
 					Image:     r.AuthorImage.String,
 					Following: r.Following,
@@ -90,7 +110,7 @@ func (r *Articles) GetAllArticlesByAuthor(
 			FavoritesCount: int(r.FavoritesCount.Int64),
 		})
 	}
-	return results, nil
+	return al, nil
 }
 
 func (r *Articles) GetAllArticlesByFavorited(
@@ -99,8 +119,18 @@ func (r *Articles) GetAllArticlesByFavorited(
 	offset int,
 	limit int,
 	favoritedUser string,
-) ([]domain.ArticleDetail, error) {
-	results := []domain.ArticleDetail{}
+) (domain.ArticleList, error) {
+	al := domain.ArticleList{
+		Total:    0,
+		Articles: []domain.ArticleDetail{},
+	}
+
+	count, err := r.CountArticlesByFavorited(ctx, favoritedUser)
+	if err != nil {
+		return al, err
+	}
+	al.Total = int(count)
+
 	rows, err := r.FetchAllArticlesByFavorited(ctx, sqlc.FetchAllArticlesByFavoritedParams{
 		Username: favoritedUser,
 		Limit:    int32(limit),
@@ -108,11 +138,11 @@ func (r *Articles) GetAllArticlesByFavorited(
 		UserID:   int64(viewerID),
 	})
 	if err != nil {
-		return results, err
+		return al, err
 	}
 
 	for _, r := range rows {
-		results = append(results, domain.ArticleDetail{
+		al.Articles = append(al.Articles, domain.ArticleDetail{
 			Article: domain.Article{
 				ID:          int(r.ID),
 				Slug:        r.Slug,
@@ -134,7 +164,7 @@ func (r *Articles) GetAllArticlesByFavorited(
 			FavoritesCount: int(r.FavoritesCount.Int64),
 		})
 	}
-	return results, nil
+	return al, nil
 }
 
 func (r *Articles) GetAllArticlesByTag(
@@ -143,8 +173,18 @@ func (r *Articles) GetAllArticlesByTag(
 	offset int,
 	limit int,
 	tag string,
-) ([]domain.ArticleDetail, error) {
-	results := []domain.ArticleDetail{}
+) (domain.ArticleList, error) {
+	al := domain.ArticleList{
+		Total:    0,
+		Articles: []domain.ArticleDetail{},
+	}
+
+	count, err := r.CountArticlesByTag(ctx, tag)
+	if err != nil {
+		return al, err
+	}
+	al.Total = int(count)
+
 	rows, err := r.FetchAllArticlesByTag(ctx, sqlc.FetchAllArticlesByTagParams{
 		Name:   tag,
 		Limit:  int32(limit),
@@ -152,11 +192,11 @@ func (r *Articles) GetAllArticlesByTag(
 		UserID: int64(viewerID),
 	})
 	if err != nil {
-		return results, err
+		return al, err
 	}
 
 	for _, r := range rows {
-		results = append(results, domain.ArticleDetail{
+		al.Articles = append(al.Articles, domain.ArticleDetail{
 			Article: domain.Article{
 				ID:          int(r.ID),
 				Slug:        r.Slug,
@@ -178,5 +218,5 @@ func (r *Articles) GetAllArticlesByTag(
 			FavoritesCount: int(r.FavoritesCount.Int64),
 		})
 	}
-	return results, nil
+	return al, nil
 }

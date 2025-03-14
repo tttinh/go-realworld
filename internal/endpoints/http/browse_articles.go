@@ -7,7 +7,7 @@ import (
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
-type articleQueries struct {
+type articleQuery struct {
 	Tag       *string `form:"tag"`
 	Author    *string `form:"author"`
 	Favorited *string `form:"favorited"`
@@ -20,25 +20,25 @@ type batchArticleRes struct {
 	ArticlesCount int           `json:"articlesCount"`
 }
 
-func (res *batchArticleRes) fromEntity(items []domain.ArticleDetail, total int) {
-	res.ArticlesCount = total
+func (res *batchArticleRes) fromEntity(al domain.ArticleList) {
+	res.ArticlesCount = al.Total
 	res.Articles = []articleData{}
-	for i := range items {
+	for _, a := range al.Articles {
 		var data articleData
-		data.fromEntity(items[i])
+		data.fromEntity(a)
 		res.Articles = append(res.Articles, data)
 	}
 }
 
 func (h *Handler) browseArticles(c *gin.Context) {
-	var q articleQueries
+	var q articleQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	userID, _ := h.jwt.GetUserID(c)
-	var articles []domain.ArticleDetail
+	var articles domain.ArticleList
 	var err error
 	switch {
 	case q.Author != nil:
@@ -57,6 +57,6 @@ func (h *Handler) browseArticles(c *gin.Context) {
 	}
 
 	var res batchArticleRes
-	res.fromEntity(articles, 10)
+	res.fromEntity(articles)
 	c.JSON(http.StatusOK, res)
 }

@@ -11,6 +11,87 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countAllArticles = `-- name: CountAllArticles :one
+SELECT COUNT(*) FROM articles
+`
+
+func (q *Queries) CountAllArticles(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countAllArticles)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countArticlesByAuthor = `-- name: CountArticlesByAuthor :one
+SELECT
+    COUNT(*)
+FROM
+    articles a
+JOIN users u ON a.author_id=u.id
+WHERE u.username=$1
+`
+
+func (q *Queries) CountArticlesByAuthor(ctx context.Context, username string) (int64, error) {
+	row := q.db.QueryRow(ctx, countArticlesByAuthor, username)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countArticlesByFavorited = `-- name: CountArticlesByFavorited :one
+SELECT
+    COUNT(*)
+FROM
+    favorites f
+JOIN users u ON f.user_id=u.id
+WHERE u.username=$1
+`
+
+func (q *Queries) CountArticlesByFavorited(ctx context.Context, username string) (int64, error) {
+	row := q.db.QueryRow(ctx, countArticlesByFavorited, username)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countArticlesByTag = `-- name: CountArticlesByTag :one
+SELECT
+    COUNT(*)
+FROM
+    article_tags atg
+JOIN tags t ON atg.tag_id=t.id
+WHERE t.name=$1
+`
+
+func (q *Queries) CountArticlesByTag(ctx context.Context, name string) (int64, error) {
+	row := q.db.QueryRow(ctx, countArticlesByTag, name)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countFeed = `-- name: CountFeed :one
+WITH following_cte AS (
+    SELECT f.following_id AS id FROM follows f WHERE f.follower_id=$1
+)
+SELECT
+    COUNT(*)
+FROM
+    articles a
+WHERE a.author_id=ANY(
+    SELECT f.following_id
+    FROM follows f
+    WHERE f.follower_id=$1
+)
+`
+
+func (q *Queries) CountFeed(ctx context.Context, followerID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, countFeed, followerID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteArticle = `-- name: DeleteArticle :exec
 DELETE FROM articles
 WHERE id = $1
@@ -62,7 +143,7 @@ WITH article_cte AS (
         u.image AS author_image
     FROM articles a
     JOIN users u ON a.author_id=u.id
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $1 OFFSET $2
 ),
 tag_cte AS (
@@ -71,13 +152,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    WHERE atags.article_id =  ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -99,7 +180,7 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC
+ORDER BY a.updated_at DESC
 `
 
 type FetchAllArticlesParams struct {
@@ -186,7 +267,7 @@ article_cte AS (
         a.updated_at
     FROM articles a
     WHERE a.author_id=(SELECT id FROM author_cte LIMIT 1)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -195,13 +276,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id =  any(SELECT id FROM article_cte)
+    WHERE atags.article_id =  ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -224,10 +305,10 @@ SELECT
         WHERE a.author_id = follows.following_id AND follows.follower_id=$4
     ) THEN true ELSE false END AS following
 FROM article_cte a
-LEFT JOIN author_cte auth ON auth.id=a.author_id
+JOIN author_cte auth ON auth.id=a.author_id
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC
+ORDER BY a.updated_at DESC
 `
 
 type FetchAllArticlesByAuthorParams struct {
@@ -246,7 +327,7 @@ type FetchAllArticlesByAuthorRow struct {
 	Description    string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
-	AuthorName     pgtype.Text
+	AuthorName     string
 	AuthorBio      pgtype.Text
 	AuthorImage    pgtype.Text
 	Tags           []string
@@ -323,7 +404,7 @@ article_cte AS (
     FROM articles a
     JOIN users u ON a.author_id=u.id
     WHERE a.id=ANY(SELECT article_id FROM user_cte)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -332,13 +413,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    WHERE atags.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -360,7 +441,7 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC
+ORDER BY a.updated_at DESC
 `
 
 type FetchAllArticlesByFavoritedParams struct {
@@ -456,7 +537,7 @@ article_cte AS (
     FROM articles a
     JOIN users u ON a.author_id=u.id
     WHERE a.id=ANY(SELECT article_id FROM article_tags_cte)
-    ORDER BY a.created_at DESC
+    ORDER BY a.updated_at DESC
     LIMIT $2 OFFSET $3
 ),
 tag_cte AS (
@@ -465,13 +546,13 @@ tag_cte AS (
         array_agg(t.name)::text[] AS names
     FROM tags t
     LEFT JOIN article_tags atags on atags.tag_id=t.id
-    WHERE atags.article_id=any(SELECT id FROM article_cte)
+    WHERE atags.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY atags.article_id
 ),
 favorite_cte AS (
     SELECT
         f.article_id,
-        COUNT(*) AS count
+        COUNT(*)
     FROM favorites f
     WHERE f.article_id=ANY(SELECT id FROM article_cte)
     GROUP BY f.article_id
@@ -493,7 +574,7 @@ SELECT
 FROM article_cte a
 LEFT JOIN tag_cte t ON a.id=t.article_id
 LEFT JOIN favorite_cte f ON a.id=f.article_id
-ORDER BY a.created_at DESC
+ORDER BY a.updated_at DESC
 `
 
 type FetchAllArticlesByTagParams struct {
@@ -820,6 +901,119 @@ func (q *Queries) FetchCommentByID(ctx context.Context, arg FetchCommentByIDPara
 		&i.Following,
 	)
 	return i, err
+}
+
+const fetchFeed = `-- name: FetchFeed :many
+WITH following_cte AS (
+    SELECT follower_id, following_id
+    FROM follows
+    WHERE follower_id=$1
+),
+article_cte AS (
+    SELECT
+        a.id,
+        a.author_id,
+        a.slug,
+        a.title,
+        a.body,
+        a.description,
+        a.created_at,
+        a.updated_at,
+        u.username AS author_name,
+        u.bio AS author_bio,
+        u.image AS author_image
+    FROM articles a
+    JOIN users u ON a.author_id=u.id
+    WHERE a.author_id=ANY(SELECT f.following_id FROM following_cte f)
+    ORDER BY a.updated_at DESC
+    OFFSET $2 LIMIT $3
+),
+tag_cte AS (
+    SELECT
+        atg.article_id,
+        array_agg(t.name)::text[] AS names
+    FROM article_tags atg
+    JOIN tags t ON atg.tag_id=t.id
+    WHERE atg.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY atg.article_id
+),
+favorite_cte AS (
+    SELECT
+        f.article_id,
+        COUNT(*)
+    FROM favorites f
+    WHERE f.article_id=ANY(SELECT id FROM article_cte)
+    GROUP BY f.article_id
+)
+SELECT
+    a.id, a.author_id, a.slug, a.title, a.body, a.description, a.created_at, a.updated_at, a.author_name, a.author_bio, a.author_image,
+    t.names AS tags,
+    f.count AS favorites_count,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM favorites f WHERE f.user_id=$1 AND f.article_id=a.id
+    ) THEN true ELSE false END AS favorited
+FROM article_cte a
+LEFT JOIN tag_cte t ON a.id=t.article_id
+LEFT JOIN favorite_cte f ON a.id=f.article_id
+ORDER BY a.updated_at DESC
+`
+
+type FetchFeedParams struct {
+	UserID int64
+	Offset int32
+	Limit  int32
+}
+
+type FetchFeedRow struct {
+	ID             int64
+	AuthorID       int64
+	Slug           string
+	Title          string
+	Body           string
+	Description    string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	AuthorName     string
+	AuthorBio      pgtype.Text
+	AuthorImage    pgtype.Text
+	Tags           []string
+	FavoritesCount pgtype.Int8
+	Favorited      bool
+}
+
+func (q *Queries) FetchFeed(ctx context.Context, arg FetchFeedParams) ([]FetchFeedRow, error) {
+	rows, err := q.db.Query(ctx, fetchFeed, arg.UserID, arg.Offset, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FetchFeedRow
+	for rows.Next() {
+		var i FetchFeedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.Slug,
+			&i.Title,
+			&i.Body,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AuthorName,
+			&i.AuthorBio,
+			&i.AuthorImage,
+			&i.Tags,
+			&i.FavoritesCount,
+			&i.Favorited,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insertArticle = `-- name: InsertArticle :one

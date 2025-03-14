@@ -57,3 +57,8 @@ type ArticleDetail struct {
 	Favorited      bool
 	FavoritesCount int
 }
+
+type ArticleList struct {
+	Articles []ArticleDetail
+	Total    int
+}
