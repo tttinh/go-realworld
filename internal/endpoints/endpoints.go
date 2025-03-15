@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -9,12 +10,14 @@ import (
 )
 
 func NewHTTPServer(
+	log *slog.Logger,
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) *http.Server {
 	return &http.Server{
 		Addr: ":8080",
 		Handler: httpendpoints.NewHandler(
+			log,
 			users,
 			articles,
 		),

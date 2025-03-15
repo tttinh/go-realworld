@@ -6,31 +6,32 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-
 	"github.com/tinhtt/go-realworld/internal/adapters"
 	"github.com/tinhtt/go-realworld/internal/adapters/postgres"
 	"github.com/tinhtt/go-realworld/internal/endpoints"
+	"github.com/tinhtt/go-realworld/internal/pkg"
 )
 
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log := pkg.NewLogger(os.Getenv("MODE"))
+
 	db := adapters.ConnectDB()
 	defer adapters.CloseDB(db)
 
 	users := postgres.NewUsers(db)
 	articles := postgres.NewArticles(db)
-	server := endpoints.NewHTTPServer(users, articles)
 
-	log.Info().Msg("Start Server ...")
+	server := endpoints.NewHTTPServer(log, users, articles)
+
+	log.Info("server starting")
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("listen: %s\n", err)
+			log.Error("fail to listen", "err", err)
+			os.Exit(1)
 		}
 	}()
 
-	log.Info().Msg("Server running")
+	log.Info("server running")
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
@@ -40,7 +41,7 @@ func main() {
 	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Info().Msg("Shutdown Server ...")
+	log.Info("server shutting down")
 
 	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	// defer cancel()
@@ -52,5 +53,5 @@ func main() {
 	// case <-ctx.Done():
 	// 	log.Println("timeout of 5 seconds.")
 	// }
-	log.Info().Msg("Server exiting")
+	log.Info("server exiting")
 }

@@ -1,13 +1,13 @@
 package httpendpoints
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 )
 
-func LogMiddleware() gin.HandlerFunc {
+func LogMiddleware(log *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -21,19 +21,19 @@ func LogMiddleware() gin.HandlerFunc {
 		c.Next()
 
 		// Stop timer
-		zlog := log.Info()
-		if len(c.Errors) > 0 {
-			zlog = log.Error()
-		}
+		l := log.With(
+			"method", c.Request.Method,
+			"path", path,
+			"elapsed", time.Since(start),
+			"status", c.Writer.Status(),
+			"client_ip", c.ClientIP(),
+			"response_size", c.Writer.Size(),
+		)
 
-		zlog.
-			Str("method", c.Request.Method).
-			Str("path", path).
-			Dur("elapsed", time.Since(start)).
-			Int("status", c.Writer.Status()).
-			Str("client_ip", c.ClientIP()).
-			Int("response_size", c.Writer.Size()).
-			Err(c.Errors.Last()).
-			Send()
+		if len(c.Errors) > 0 {
+			l.Error("http", "err", c.Errors.Last())
+		} else {
+			l.Info("http")
+		}
 	}
 }

@@ -1,7 +1,8 @@
 # TODO
 
-- Metrics to Prometheus.
-- Tracing to Open Tracing.
-- Add Log.
-- Integration Test.
-- Unit Test.
+- [ ] Metrics to Prometheus.
+- [ ] Tracing to Open Tracing.
+- [x] Add Log.
+- [x] E2E tests.
+- [ ] Integration Test.
+- [ ] Unit Test.

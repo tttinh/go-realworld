@@ -1,6 +1,7 @@
 package httpendpoints
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ type Handler struct {
 }
 
 func NewHandler(
+	log *slog.Logger,
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
@@ -27,7 +29,7 @@ func NewHandler(
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	api := router.Group("/api").Use(LogMiddleware(), ErrorMiddleware())
+	api := router.Group("/api").Use(LogMiddleware(log), ErrorMiddleware())
 
 	// public APIs
 	api.POST("/users/login", h.loginUser)
