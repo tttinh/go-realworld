@@ -2,23 +2,29 @@ package adapters
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/tinhtt/go-realworld/internal/config"
 )
 
-func ConnectDB() *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), "postgres://tinhtt:tinhtt@localhost:5432/conduit?sslmode=disable")
+func ConnectDB(c config.Config) (*pgx.Conn, error) {
+	dbURL := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		c.Database.Username,
+		c.Database.Password,
+		c.Database.Host,
+		c.Database.Port,
+		c.Database.Name,
+	)
+	conn, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		return nil, err
 	}
 
-	return conn
+	return conn, err
 }
 
 func CloseDB(conn *pgx.Conn) {
-	err := conn.Close(context.Background())
-	if err != nil {
-		log.Fatalf("Unable to close connection: %v\n", err)
-	}
+	conn.Close(context.Background())
 }

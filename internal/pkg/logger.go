@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
+	"github.com/tinhtt/go-realworld/internal/config"
 )
 
-func NewLogger(_ string) *slog.Logger {
-	// if mode == "test" {
-	// 	return noopLogger()
-	// }
+func NewLogger(m config.Mode) *slog.Logger {
+	if m == config.Test {
+		return noopLogger()
+	}
 
-	// if mode == "release" {
-	// 	return releaseLogger()
-	// }
+	if m == config.Release {
+		return releaseLogger()
+	}
 
 	return debugLogger()
-	// return releaseLogger()
 }
 
 func noopLogger() *slog.Logger {

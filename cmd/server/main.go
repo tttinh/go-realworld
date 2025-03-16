@@ -8,22 +8,40 @@ import (
 
 	"github.com/tinhtt/go-realworld/internal/adapters"
 	"github.com/tinhtt/go-realworld/internal/adapters/postgres"
+	"github.com/tinhtt/go-realworld/internal/config"
 	"github.com/tinhtt/go-realworld/internal/endpoints"
 	"github.com/tinhtt/go-realworld/internal/pkg"
 )
 
 func main() {
-	log := pkg.NewLogger(os.Getenv("MODE"))
+	mode := config.Mode(os.Getenv("CONDUIT_MODE"))
+	log := pkg.NewLogger(mode)
 
-	db := adapters.ConnectDB()
+	log.Info("server starting")
+	cfg, err := config.Load()
+	if err != nil {
+		log.Error("fail to load config", "err", err)
+		os.Exit(1)
+	}
+
+	if mode != config.Release {
+		log.Info("load config successfully", "cfg", cfg)
+	} else {
+		log.Info("load config successfully")
+	}
+
+	db, err := adapters.ConnectDB(cfg)
+	if err != nil {
+		log.Error("fail to connect database", "err", err)
+		os.Exit(1)
+	}
 	defer adapters.CloseDB(db)
+	log.Info("connect database successfully")
 
 	users := postgres.NewUsers(db)
 	articles := postgres.NewArticles(db)
+	server := endpoints.NewHTTPServer(log, cfg, users, articles)
 
-	server := endpoints.NewHTTPServer(log, users, articles)
-
-	log.Info("server starting")
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Error("fail to listen", "err", err)
@@ -31,7 +49,7 @@ func main() {
 		}
 	}()
 
-	log.Info("server running")
+	log.Info("server running", "port", cfg.HTTPServer.Port)
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
@@ -53,5 +71,5 @@ func main() {
 	// case <-ctx.Done():
 	// 	log.Println("timeout of 5 seconds.")
 	// }
-	log.Info("server exiting")
+	log.Info("server exited")
 }

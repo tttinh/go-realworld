@@ -3,9 +3,9 @@ package httpendpoints
 import (
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tinhtt/go-realworld/internal/config"
 	"github.com/tinhtt/go-realworld/internal/domain"
 )
 
@@ -17,10 +17,11 @@ type Handler struct {
 
 func NewHandler(
 	log *slog.Logger,
+	cfg config.Config,
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
-	jwt := NewJWT("ABC", 999*time.Hour)
+	jwt := NewJWT(cfg.HTTPServer.JWTSecret, cfg.HTTPServer.JWTDuration)
 	h := Handler{
 		jwt:      jwt,
 		articles: articles,
