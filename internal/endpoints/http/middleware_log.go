@@ -1,7 +1,9 @@
 package httpendpoints
 
 import (
+	"errors"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -30,10 +32,16 @@ func LogMiddleware(log *slog.Logger) gin.HandlerFunc {
 			"response_size", c.Writer.Size(),
 		)
 
-		if len(c.Errors) > 0 {
-			l.Error("http", "err", c.Errors.Last())
-		} else {
-			l.Info("http")
+		if c.Writer.Status() >= http.StatusInternalServerError {
+			l.Error("http", "err", errors.Unwrap(c.Errors.Last()))
+			return
 		}
+
+		if c.Writer.Status() >= http.StatusBadRequest {
+			l.Warn("http", "err", errors.Unwrap(c.Errors.Last()))
+			return
+		}
+
+		l.Info("http")
 	}
 }

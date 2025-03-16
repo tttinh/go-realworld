@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
-	slogformatter "github.com/samber/slog-formatter"
 )
 
-func NewLogger(mode string) *slog.Logger {
-	if mode == "test" {
-		return noopLogger()
-	}
+func NewLogger(_ string) *slog.Logger {
+	// if mode == "test" {
+	// 	return noopLogger()
+	// }
 
-	if mode == "release" {
-		return releaseLogger()
-	}
+	// if mode == "release" {
+	// 	return releaseLogger()
+	// }
 
 	return debugLogger()
+	// return releaseLogger()
 }
 
 func noopLogger() *slog.Logger {
@@ -29,41 +29,41 @@ func noopLogger() *slog.Logger {
 }
 
 func debugLogger() *slog.Logger {
-	return slog.New(
-		tint.NewHandler(os.Stderr, &tint.Options{
-			Level:      slog.LevelDebug,
-			TimeFormat: time.Kitchen,
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				if err, ok := a.Value.Any().(error); ok {
-					aErr := tint.Err(err)
-					aErr.Key = a.Key
-					return aErr
-				}
-				return a
-			},
-		}),
-	)
-}
-
-func releaseLogger() *slog.Logger {
-	errFmt := slogformatter.ErrorFormatter("error")
-	opts := &slog.HandlerOptions{
-		Level: new(slog.LevelVar),
+	o := &tint.Options{
+		Level:      slog.LevelDebug,
+		TimeFormat: time.Kitchen,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// Modify time attribute
-			if a.Key == slog.TimeKey {
-				t := a.Value.Time()
-				return slog.Attr{
-					Key:   slog.TimeKey,
-					Value: slog.Int64Value(t.UnixMilli()),
-				}
+			// Trace error
+			if err, ok := a.Value.Any().(*Error); ok {
+				a.Value = formatErrorAttr(err)
 			}
+
 			return a
 		},
 	}
-	return slog.New(
-		slogformatter.NewFormatterHandler(errFmt)(
-			slog.NewJSONHandler(os.Stderr, opts),
-		),
+	h := tint.NewHandler(os.Stderr, o)
+	return slog.New(h)
+}
+
+func releaseLogger() *slog.Logger {
+	o := &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			// Trace error
+			if err, ok := a.Value.Any().(*Error); ok {
+				a.Value = formatErrorAttr(err)
+			}
+
+			return a
+		},
+	}
+	h := slog.NewJSONHandler(os.Stderr, o)
+	return slog.New(h)
+}
+
+func formatErrorAttr(err *Error) slog.Value {
+	return slog.GroupValue(
+		slog.String("msg", err.Error()),
+		slog.Any("trace", err.frames),
 	)
 }
