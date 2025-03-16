@@ -12,7 +12,7 @@ func (h *Handler) deleteArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
@@ -22,7 +22,7 @@ func (h *Handler) deleteArticle(c *gin.Context) {
 	}
 
 	if err := h.articles.Remove(c, a.ID); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 }

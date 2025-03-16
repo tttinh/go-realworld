@@ -27,7 +27,7 @@ func (h *Handler) updateCurrentUser(c *gin.Context) {
 	userID, _ := h.jwt.GetUserID(c)
 	u, err := h.users.GetByID(c, userID)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h *Handler) updateCurrentUser(c *gin.Context) {
 
 	u, err = h.users.Edit(c, u)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

@@ -31,15 +31,16 @@ func ErrorMiddleware() gin.HandlerFunc {
 				c.AbortWithError(http.StatusInternalServerError, e)
 			}
 		}()
+
 		c.Next()
 
 		if len(c.Errors) > 0 {
-			err := c.Errors.Last()
 			if c.Writer.Status() == http.StatusInternalServerError {
 				c.JSON(-1, newErrorRes(errors.New("internal server error")))
 				return
 			}
 
+			err := c.Errors.Last()
 			c.JSON(-1, newErrorRes(err))
 		}
 	}

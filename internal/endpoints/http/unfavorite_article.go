@@ -11,18 +11,18 @@ func (h *Handler) unfavoriteArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
 	if err := h.articles.RemoveFavorite(c, userID, a.ID); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 
 	detail, err := h.articles.GetDetail(c, userID, a.Slug)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

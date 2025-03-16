@@ -24,7 +24,7 @@ func (h *Handler) loginUser(c *gin.Context) {
 
 	u, err := h.users.GetByEmail(c, req.User.Email)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 

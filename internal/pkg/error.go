@@ -31,7 +31,7 @@ func (e *Error) Trace() []StackFrame {
 func stack() []StackFrame {
 	var frames []StackFrame
 	pc := make([]uintptr, 50) // Adjust max depth as needed
-	n := runtime.Callers(5, pc)
+	n := runtime.Callers(3, pc)
 	callStack := pc[:n]
 	for _, pc := range callStack {
 		fn := runtime.FuncForPC(pc)

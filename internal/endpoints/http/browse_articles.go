@@ -52,7 +52,7 @@ func (h *Handler) browseArticles(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

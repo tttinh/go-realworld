@@ -13,7 +13,7 @@ type batchTagRes struct {
 func (h *Handler) browseTags(c *gin.Context) {
 	tags, err := h.articles.GetAllTags(c)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

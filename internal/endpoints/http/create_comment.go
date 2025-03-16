@@ -57,7 +57,7 @@ func (h *Handler) createComment(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *Handler) createComment(c *gin.Context) {
 	}
 	comment, err = h.articles.AddComment(c, comment)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

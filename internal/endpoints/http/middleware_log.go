@@ -32,16 +32,18 @@ func LogMiddleware(log *slog.Logger) gin.HandlerFunc {
 			"response_size", c.Writer.Size(),
 		)
 
-		if c.Writer.Status() >= http.StatusInternalServerError {
-			l.Error("http", "err", errors.Unwrap(c.Errors.Last()))
+		if len(c.Errors) == 0 {
+			l.Info("http")
 			return
 		}
 
-		if c.Writer.Status() >= http.StatusBadRequest {
+		// Client errors
+		if c.Writer.Status() < http.StatusInternalServerError {
 			l.Warn("http", "err", errors.Unwrap(c.Errors.Last()))
 			return
 		}
 
-		l.Info("http")
+		// Server errors
+		l.Error("http", "err", errors.Unwrap(c.Errors.Last()))
 	}
 }

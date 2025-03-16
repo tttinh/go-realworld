@@ -47,7 +47,7 @@ func (h *Handler) createArticle(c *gin.Context) {
 			a.NewSlug()
 			continue
 		} else {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			abortWithError(c, err)
 			return
 		}
 	}
@@ -59,7 +59,7 @@ func (h *Handler) createArticle(c *gin.Context) {
 
 	detail, err := h.articles.GetDetail(c, userID, a.Slug)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

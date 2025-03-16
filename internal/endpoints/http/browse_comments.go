@@ -24,13 +24,13 @@ func (h *Handler) browseComments(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
 	comments, err := h.articles.GetAllComments(c, userID, a.ID)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

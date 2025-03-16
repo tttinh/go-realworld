@@ -21,7 +21,7 @@ func (h *Handler) browseFeed(c *gin.Context) {
 	userID, _ := h.jwt.GetUserID(c)
 	articles, err := h.articles.GetFeed(c, userID, q.Offset, q.Limit)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

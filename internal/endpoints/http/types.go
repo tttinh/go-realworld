@@ -6,15 +6,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tinhtt/go-realworld/internal/domain"
+	"github.com/tinhtt/go-realworld/internal/pkg"
 )
 
-func abort(c *gin.Context, err error) {
+func abortWithError(c *gin.Context, err error) {
 	if errors.Is(err, domain.ErrNotFound) {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	c.AbortWithError(http.StatusInternalServerError, err)
+	c.AbortWithError(http.StatusInternalServerError, pkg.NewError(err))
 }
 
 type userRes struct {

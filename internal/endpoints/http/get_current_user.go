@@ -11,7 +11,7 @@ func (h *Handler) getCurrentUser(c *gin.Context) {
 	userID, _ := h.jwt.GetUserID(c)
 	u, err := h.users.GetByID(c, userID)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 

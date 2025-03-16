@@ -11,13 +11,13 @@ func (h *Handler) unfollowUser(c *gin.Context) {
 	followingUsername := c.Param("username")
 	followingUser, err := h.users.GetProfile(c, followerID, followingUsername)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
 	err = h.users.Unfollow(c, followerID, followingUser.ID)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 

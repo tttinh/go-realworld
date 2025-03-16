@@ -13,7 +13,7 @@ func (h *Handler) deleteComment(c *gin.Context) {
 	commentID, _ := strconv.Atoi(c.Param("id"))
 	comment, err := h.articles.GetComment(c, userID, commentID)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 	}
 
 	if userID != comment.Author.ID {
@@ -22,7 +22,7 @@ func (h *Handler) deleteComment(c *gin.Context) {
 	}
 
 	if err := h.articles.RemoveComment(c, commentID); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 }

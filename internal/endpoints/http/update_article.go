@@ -27,7 +27,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 	slug := c.Param("slug")
 	a, err := h.articles.Get(c, slug)
 	if err != nil {
-		abort(c, err)
+		abortWithError(c, err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 			a.NewSlug()
 			continue
 		} else {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			abortWithError(c, err)
 			return
 		}
 	}
@@ -68,7 +68,7 @@ func (h *Handler) updateArticle(c *gin.Context) {
 
 	detail, err := h.articles.GetDetail(c, userID, slug)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		abortWithError(c, err)
 		return
 	}
 
