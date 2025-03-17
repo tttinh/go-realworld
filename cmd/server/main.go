@@ -14,22 +14,26 @@ import (
 )
 
 func main() {
+	// Init logger.
 	mode := config.Mode(os.Getenv("CONDUIT_MODE"))
 	log := pkg.NewLogger(mode)
+	log.Info("start server")
 
-	log.Info("server starting")
+	// Load configuration.
 	cfg, err := config.Load()
 	if err != nil {
 		log.Error("fail to load config", "err", err)
 		os.Exit(1)
 	}
+	log.Info("load config successfully", "cfg", cfg)
 
-	if mode != config.Release {
-		log.Info("load config successfully", "cfg", cfg)
-	} else {
-		log.Info("load config successfully")
-	}
+	// if mode == config.Release {
+	// 	log.Info("load config successfully")
+	// } else {
+	// 	log.Info("load config successfully", "cfg", cfg)
+	// }
 
+	// Connect database.
 	db, err := adapters.ConnectDB(cfg)
 	if err != nil {
 		log.Error("fail to connect database", "err", err)
@@ -38,10 +42,22 @@ func main() {
 	defer adapters.CloseDB(db)
 	log.Info("connect database successfully")
 
+	// Run migration.
+	if cfg.Migration.Auto {
+		err = adapters.Migrate(cfg)
+		if err != nil {
+			log.Error("fail to run migration", "err", err)
+			os.Exit(1)
+		}
+		log.Info("run migration successfully")
+	}
+
+	// Init repositories, services, handlers.
 	users := postgres.NewUsers(db)
 	articles := postgres.NewArticles(db)
 	server := endpoints.NewHTTPServer(log, cfg, users, articles)
 
+	// Start HTTP server.
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Error("fail to listen", "err", err)
@@ -49,7 +65,7 @@ func main() {
 		}
 	}()
 
-	log.Info("server running", "port", cfg.HTTP.Port)
+	log.Info("server is running", "port", cfg.HTTP.Port)
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
@@ -59,7 +75,7 @@ func main() {
 	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Info("server shutting down")
+	log.Info("stop server")
 
 	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	// defer cancel()
@@ -71,5 +87,5 @@ func main() {
 	// case <-ctx.Done():
 	// 	log.Println("timeout of 5 seconds.")
 	// }
-	log.Info("server exited")
+	log.Info("exited")
 }

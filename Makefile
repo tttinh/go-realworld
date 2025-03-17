@@ -65,3 +65,23 @@ compose-down:
 compose-build:
 	docker build . -t conduit-backend
 .PHONY: compose-build
+
+
+###############################################################################
+# OTHERS
+###############################################################################
+
+# Start a Postgres database in Docker.
+start-db:
+	docker run --rm -d --name conduit-db -p 5432:5432 \
+		-e POSTGRES_DB=$(POSTGRES_DB) \
+		-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+		-e POSTGRES_USER=$(POSTGRES_USER) \
+ 		postgres:16-alpine
+.PHONY: start-db
+
+
+# Stop the Postgres database in Docker.
+stop-db:
+	docker stop conduit-db
+.PHONY: stop-db

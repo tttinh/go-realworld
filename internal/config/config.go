@@ -19,12 +19,19 @@ const (
 
 var rawConfig = []byte(`
 mode: debug
+
+migration:
+  auto: true
+  fresh: false
+  path: db/postgres/migration
+
 database:
   name: conduit
   host: localhost
   port: 5432
   username: tinhtt
   password: tinhtt
+
 http:
   port: :8080
   jwt_secret: verysecret
@@ -32,21 +39,27 @@ http:
 `)
 
 type Config struct {
-	Foo      string `mapstructure:"foo"`
-	Mode     Mode   `mapstructure:"mode"`
+	Mode Mode `mapstructure:"mode" json:"mode"`
+
+	Migration struct {
+		Path  string `mapstructure:"path" json:"path"`
+		Auto  bool   `mapstructure:"auto" json:"auto"`
+		Fresh bool   `mapstructure:"fresh" json:"fresh"`
+	} `mapstructure:"migration" json:"migration"`
+
 	Database struct {
-		Name     string `mapstructure:"name"`
-		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
-		Username string `mapstructure:"username"`
-		Password string `mapstructure:"password"`
-	} `mapstructure:"database"`
+		Name     string `mapstructure:"name" json:"name"`
+		Host     string `mapstructure:"host" json:"host"`
+		Port     int    `mapstructure:"port" json:"port"`
+		Username string `mapstructure:"username" json:"username"`
+		Password string `mapstructure:"password" json:"password"`
+	} `mapstructure:"database" json:"database"`
 
 	HTTP struct {
-		Port        string        `mapstructure:"port"`
-		JWTSecret   string        `mapstructure:"jwt_secret"`
-		JWTDuration time.Duration `mapstructure:"jwt_duration"`
-	} `mapstructure:"http"`
+		Port        string        `mapstructure:"port" json:"port"`
+		JWTSecret   string        `mapstructure:"jwt_secret" json:"jwt_secret"`
+		JWTDuration time.Duration `mapstructure:"jwt_duration" json:"jwt_duration"`
+	} `mapstructure:"http" json:"http"`
 }
 
 func Load() (Config, error) {
