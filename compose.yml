@@ -1,7 +1,6 @@
 name: conduit
 services:
   postgres:
-    container_name: conduit-postgres
     image: 'postgres:16-alpine'
     ports:
       - '5432:5432'
@@ -11,10 +10,25 @@ services:
       POSTGRES_PASSWORD: ${DK_POSTGRES_PASSWORD:-tinhtt}
       POSTGRES_DB: ${DK_POSTGRES_DB:-conduit}
   redis:
-    container_name: conduit-redis
     image: 'redis:7.4-alpine'
     ports:
       - '6379:6379'
     restart: always
     depends_on:
       - postgres
+  backend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        - GO_VERSION=1.24.1
+        - ALPINE_VERSION=3.21
+    ports:
+      - '8080:8080'
+    depends_on:
+      - redis
+    environment:
+      CONDUIT_MODE: ${CONDUIT_MODE:-debug}
+      CONDUIT_JWT_SECRET: ${CONDUIT_JWT_SECRET:-secret}
+      CONDUIT_JWT_DURATION: ${CONDUIT_JWT_DURATION:-256h}
+      CONDUIT_DATABASE_HOST: postgres
