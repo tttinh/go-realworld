@@ -21,7 +21,7 @@ func NewHandler(
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {
-	jwt := NewJWT(cfg.HTTPServer.JWTSecret, cfg.HTTPServer.JWTDuration)
+	jwt := NewJWT(cfg.HTTP.JWTSecret, cfg.HTTP.JWTDuration)
 	h := Handler{
 		jwt:      jwt,
 		articles: articles,

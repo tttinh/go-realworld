@@ -6,31 +6,62 @@ endif
 
 -include .env
 
-# Generate code from .sql files into infra folder.
+
+###############################################################################
+# CODE GENERATION
+###############################################################################
+
+# Generate code from .sql files for data layers.
 sqlc:
 	sqlc generate
 .PHONY: sqlc
 
+###############################################################################
+# MIGRATION
+###############################################################################
 
 # Create new migration files.
 # Example: make add-migration name=create_table_abc
 add-migration:
-	migrate create -ext sql -seq -dir $(MK_DB_MIGRATION) $(name)
+	migrate create -ext sql -seq -dir $(POSTGRES_MIGRATION) $(name)
 .PHONY: add-migration
 
 
 # Run database migration up.
 up-migration:
-	migrate -path $(MK_DB_MIGRATION) -database $(MK_DB_URI) up
+	migrate -path $(POSTGRES_MIGRATION) -database $(POSTGRES_URI) up
 .PHONY: up-migration
 
 
 # Run database migration down.
 down-migration:
-	migrate -path $(MK_DB_MIGRATION) -database $(MK_DB_URI) down -all
+	migrate -path $(POSTGRES_MIGRATION) -database $(POSTGRES_URI) down -all
 .PHONY: down-migration
 
+
+###############################################################################
+# TEST
+###############################################################################
+
 # Run E2E test.
-e2e-test:
+test-e2e:
 	./scripts/e2e.sh
-.PHONY: e2e-test
+.PHONY: test-e2e
+
+
+###############################################################################
+# DOCKER
+###############################################################################
+
+compose-up:
+	docker compose up
+.PHONY: compose-up
+
+compose-down:
+	docker compose down
+.PHONY: compose-down
+
+# Rebuild backend image for docker compose.
+compose-build:
+	docker build . -t conduit-backend
+.PHONY: compose-build

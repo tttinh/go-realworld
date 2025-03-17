@@ -49,7 +49,7 @@ func main() {
 		}
 	}()
 
-	log.Info("server running", "port", cfg.HTTPServer.Port)
+	log.Info("server running", "port", cfg.HTTP.Port)
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.

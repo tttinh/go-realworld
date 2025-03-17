@@ -17,7 +17,7 @@ func NewHTTPServer(
 	articles domain.ArticleRepo,
 ) *http.Server {
 	return &http.Server{
-		Addr: cfg.HTTPServer.Port,
+		Addr: cfg.HTTP.Port,
 		Handler: httpendpoints.NewHandler(
 			log,
 			cfg,

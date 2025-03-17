@@ -25,7 +25,7 @@ database:
   port: 5432
   username: tinhtt
   password: tinhtt
-http_server:
+http:
   port: :8080
   jwt_secret: verysecret
   jwt_duration: 168h
@@ -42,11 +42,11 @@ type Config struct {
 		Password string `mapstructure:"password"`
 	} `mapstructure:"database"`
 
-	HTTPServer struct {
+	HTTP struct {
 		Port        string        `mapstructure:"port"`
 		JWTSecret   string        `mapstructure:"jwt_secret"`
 		JWTDuration time.Duration `mapstructure:"jwt_duration"`
-	} `mapstructure:"http_server"`
+	} `mapstructure:"http"`
 }
 
 func Load() (Config, error) {
