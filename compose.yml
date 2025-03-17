@@ -1,0 +1,20 @@
+name: conduit
+services:
+  postgres:
+    container_name: conduit-postgres
+    image: 'postgres:16-alpine'
+    ports:
+      - '5432:5432'
+    restart: always
+    environment:
+      POSTGRES_USER: ${DK_POSTGRES_USER:-tinhtt}
+      POSTGRES_PASSWORD: ${DK_POSTGRES_PASSWORD:-tinhtt}
+      POSTGRES_DB: ${DK_POSTGRES_DB:-conduit}
+  redis:
+    container_name: conduit-redis
+    image: 'redis:7.4-alpine'
+    ports:
+      - '6379:6379'
+    restart: always
+    depends_on:
+      - postgres

@@ -6,6 +6,7 @@
 - [x] E2E tests.
 - [ ] Integration Test.
 - [ ] Unit Test.
-- [ ] Viper for config.
-- [ ] Rediss for cache.
+- [x] Viper for config.
+- [ ] Redis for cache.
 - [ ] Elasticsearch for search.
+- [ ] Docker compose
