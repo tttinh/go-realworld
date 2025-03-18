@@ -11,7 +11,7 @@ import (
 	"github.com/tinhtt/go-realworld/internal/config"
 )
 
-func ConnectDB(c config.Config) (*pgx.Conn, error) {
+func ConnectDB(c *config.Config) (*pgx.Conn, error) {
 	dbURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		c.Database.Username,
@@ -32,7 +32,7 @@ func CloseDB(conn *pgx.Conn) {
 	conn.Close(context.Background())
 }
 
-func Migrate(c config.Config) error {
+func Migrate(c *config.Config) error {
 	path := fmt.Sprintf("file://%s", c.Migration.Path)
 	dbURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=disable",

@@ -9,4 +9,6 @@
 - [x] Viper for config.
 - [ ] Redis for cache.
 - [ ] Elasticsearch for search.
-- [ ] Docker compose
+- [x] Docker compose
+- [x] Update README.
+- [x] Add Cobra.

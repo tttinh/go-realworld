@@ -17,7 +17,7 @@ type Handler struct {
 
 func NewHandler(
 	log *slog.Logger,
-	cfg config.Config,
+	cfg *config.Config,
 	users domain.UserRepo,
 	articles domain.ArticleRepo,
 ) http.Handler {

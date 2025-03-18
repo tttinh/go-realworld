@@ -62,11 +62,11 @@ type Config struct {
 	} `mapstructure:"http" json:"http"`
 }
 
-func Load() (Config, error) {
+func Load() (*Config, error) {
 	v := viper.New()
 	v.SetConfigType("yaml")
 	if err := v.ReadConfig(bytes.NewBuffer(rawConfig)); err != nil {
-		return Config{}, err
+		return nil, err
 	}
 
 	v.AutomaticEnv()
@@ -75,8 +75,8 @@ func Load() (Config, error) {
 
 	var c Config
 	if err := v.Unmarshal(&c); err != nil {
-		return Config{}, err
+		return nil, err
 	}
 
-	return c, nil
+	return &c, nil
 }
