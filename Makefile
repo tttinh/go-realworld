@@ -23,7 +23,7 @@ sqlc:
 # Create new migration files.
 # Example: make add-migration name=create_table_abc
 add-migration:
-	migrate create -ext sql -seq -dir $(POSTGRES_MIGRATION) $(name)
+	migrate create -ext sql -seq -dir $(POSTGRES_MIGRATION)
 .PHONY: add-migration
 
 
@@ -54,16 +54,16 @@ test-e2e:
 ###############################################################################
 
 compose-up:
-	docker compose up
+	docker compose up $(args)
 .PHONY: compose-up
 
 compose-down:
 	docker compose down
 .PHONY: compose-down
 
-# Rebuild backend image for docker compose.
+# Rebuild application image for docker compose.
 compose-build:
-	docker build . -t conduit-backend
+	docker build . -t conduit
 .PHONY: compose-build
 
 

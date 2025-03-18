@@ -17,8 +17,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build \
     -ldflags="-w -s" \
     -trimpath \
-    -o conduit \
-    ./cmd/server
+    -o app \
+    main.go
 
 # Runtime stage
 FROM alpine:${ALPINE_VERSION} AS runtime
@@ -40,8 +40,8 @@ USER appuser
 WORKDIR /home/appuser
 
 # Copy migration files and binary
-COPY --from=builder /src/conduit ./
+COPY --from=builder /src/app ./
 COPY ./db/postgres/migration ./db/postgres/migration
 
 # Run the application
-CMD ["./conduit"]
+CMD ["./app"]

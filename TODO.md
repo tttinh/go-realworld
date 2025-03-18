@@ -12,3 +12,5 @@
 - [x] Docker compose
 - [x] Update README.
 - [x] Add Cobra.
+- [x] Graceful shutdown.
+- [ ] Static check.

@@ -26,13 +26,16 @@ services:
         condition: service_healthy
 
 
-  backend:
+  api:
+    image: conduit:latest
+    pull_policy: never
     build:
       context: ./
       dockerfile: Dockerfile
       args:
         - GO_VERSION=1.24.1
         - ALPINE_VERSION=3.21
+    command: ["./app", "serve"]
     ports:
       - '8080:8080'
     depends_on:
